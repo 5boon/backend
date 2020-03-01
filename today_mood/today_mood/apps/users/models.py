@@ -1,5 +1,4 @@
 from django.contrib.auth import models as auth_models
-from django.core import validators
 from django.db import models
 
 
@@ -12,3 +11,6 @@ class User(auth_models.AbstractUser):
 
     def __str__(self):
         return "name: {}".format(self.username)
+
+    def save(self, *args, **kwargs):
+        return super(User, self).save(*args, **kwargs)

@@ -1,8 +1,8 @@
-from django.conf import settings
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions, mixins
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
-from api.users.serializers import UserSerializer
+from api.users.serializers import UserSerializer, UserRegisterSerializer
 from apps.users.models import User
 
 
@@ -20,3 +20,26 @@ class UserInformationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         result = serializer.save()
         return result
+
+
+class UserRegister(mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    """
+
+        User 등록 API
+
+    """
+
+    queryset = User.objects.all()
+    serializer_class = UserRegisterSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    lookup_url_kwarg = 'username'
+    lookup_field = 'username'
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        return instance
+
+    def get_permissions(self):
+        if self.action == 'create':
+            self.permission_classes = (permissions.AllowAny,)
+        return super(UserRegister, self).get_permissions()
