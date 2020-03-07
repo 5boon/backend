@@ -1,0 +1,9 @@
+Django==3.0.3
+django-cors-headers==3.2.1
+django-oauth-toolkit==1.2.0
+djangorestframework==3.11.0
+mysqlclient==1.4.6
+oauthlib==3.1.0
+pytest==5.3.5
+pytz==2019.3
+zipp==3.0.0
