@@ -120,9 +120,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': '5boondb',
-        'USER': '******',
-        'PASSWORD': '******',
-        'HOST': '******'
+        'OPTIONS': {
+            'read_default_file': '/etc/mysql/conf.d/5boon.cnf',
+        },
     }
 }
 
