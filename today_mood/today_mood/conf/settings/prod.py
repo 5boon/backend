@@ -149,6 +149,11 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+#########################################
+#           슬랙 채널
+#########################################
+SLACK_CHANNEL_JOINED_USER = 'slack_channel_joined_user_key'
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
