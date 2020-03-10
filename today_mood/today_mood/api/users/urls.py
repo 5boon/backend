@@ -5,6 +5,8 @@ from django.conf.urls import url
 
 from api.users.views import UserInformationViewSet, UserRegister
 
+app_name = 'users'
+
 information = UserInformationViewSet.as_view({
     'get': 'list',
     'post': 'create'
