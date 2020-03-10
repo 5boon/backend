@@ -7,7 +7,6 @@ class User(auth_models.AbstractUser):
 
     class Meta:
         verbose_name = 'user'
-        verbose_name_plural = 'user'
 
     def __str__(self):
         return "name: {}".format(self.username)
