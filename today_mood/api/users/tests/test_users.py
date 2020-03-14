@@ -1,12 +1,20 @@
+import mock
+
 import pytest
 from rest_framework import status
 
 from rest_framework.reverse import reverse
 
 
+@pytest.fixture(scope='function')
+def mock_update_employment_center_name():
+    with mock.patch('utils.slack.notify_slack') as patch:
+        yield patch
+
+
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_user_register(rf, client):
+def test_user_register(rf, client, mock_update_employment_center_name):
     url = reverse(viewname="users:user_register")
 
     data = {
