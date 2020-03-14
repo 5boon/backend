@@ -1,11 +1,10 @@
-from django.conf import settings
 from rest_framework import viewsets, permissions, mixins
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from slackweb import slackweb
 
 from api.users.serializers import UserSerializer, UserRegisterSerializer
 from apps.users.models import User
+from utils.slack import notify_slack
 
 
 class UserInformationViewSet(viewsets.ModelViewSet):
@@ -39,16 +38,6 @@ class UserRegister(mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericVi
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        self.notify_slack(instance)
-        return instance
-
-    def get_permissions(self):
-        if self.action == 'create':
-            self.permission_classes = (permissions.AllowAny,)
-        return super(UserRegister, self).get_permissions()
-
-    def notify_slack(self, instance):
-        slack = slackweb.Slack(url=settings.SLACK_CHANNEL_JOINED_USER)
 
         attachments = [
             {
@@ -64,4 +53,10 @@ class UserRegister(mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericVi
             }
         ]
 
-        slack.notify(channel="#join-user", attachments=attachments)
+        notify_slack(attachments, '#join-user')
+        return instance
+
+    def get_permissions(self):
+        if self.action == 'create':
+            self.permission_classes = (permissions.AllowAny,)
+        return super(UserRegister, self).get_permissions()
