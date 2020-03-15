@@ -30,7 +30,7 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest-django
-        pytest
+        cd today_mood && pytest
         
 #     - name: Slack Notification
 #       uses: homoluctus/slatify@master
