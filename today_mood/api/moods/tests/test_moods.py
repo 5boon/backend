@@ -29,7 +29,7 @@ def test_today_mood_create(user_context, rf, client, mood_status, mock_is_authen
         "status": mood_status,
         "simple_summary": "테스트 기분"
     }
-    user = user_context.init.create_test_user()
+    user = user_context.user
 
     url = reverse(viewname="moods:today_mood")
     response = pytest_request(rf,
@@ -45,7 +45,7 @@ def test_today_mood_create(user_context, rf, client, mood_status, mock_is_authen
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
 def test_no_today_mood_list(user_context, rf, client, mock_is_authenticated):
-    user = user_context.init.create_test_user()
+    user = user_context.user
 
     url = reverse(viewname="moods:today_mood")
     response = pytest_request(rf,
@@ -59,7 +59,7 @@ def test_no_today_mood_list(user_context, rf, client, mock_is_authenticated):
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
 def test_today_mood_list(user_context, rf, client, mock_is_authenticated):
-    user = user_context.init.create_test_user()
+    user = user_context.user
     today = datetime.today()
 
     mood = Mood.objects.create(
