@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from apps.moods.models import UserMood, Mood
+from apps.users.models import User
 from tests.request_helper import pytest_request
 
 MOOD_FIELDS_LIST = ['id', 'status', 'simple_summary']
@@ -24,12 +25,17 @@ def mock_is_authenticated():
     'mood_status',
     [0, 1, 2, 3, 4]
 )
-def test_today_mood_create(user_context, rf, client, mood_status, mock_is_authenticated):
+def test_today_mood_create(rf, client, mood_status, mock_is_authenticated):
     data = {
         "status": mood_status,
         "simple_summary": "테스트 기분"
     }
-    user = user_context.user
+
+    user = User.objects.create(
+        username='test_user',
+        nickname='test_nickname',
+        password='test_pw'
+    )
 
     url = reverse(viewname="moods:today_mood")
     response = pytest_request(rf,
@@ -44,8 +50,12 @@ def test_today_mood_create(user_context, rf, client, mood_status, mock_is_authen
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_no_today_mood_list(user_context, rf, client, mock_is_authenticated):
-    user = user_context.user
+def test_no_today_mood_list(rf, client, mock_is_authenticated):
+    user = User.objects.create(
+        username='test_user',
+        nickname='test_nickname',
+        password='test_pw'
+    )
 
     url = reverse(viewname="moods:today_mood")
     response = pytest_request(rf,
@@ -58,8 +68,13 @@ def test_no_today_mood_list(user_context, rf, client, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_today_mood_list(user_context, rf, client, mock_is_authenticated):
-    user = user_context.user
+def test_today_mood_list(rf, client, mock_is_authenticated):
+    user = User.objects.create(
+        username='test_user',
+        nickname='test_nickname',
+        password='test_pw'
+    )
+
     today = datetime.today()
 
     mood = Mood.objects.create(
