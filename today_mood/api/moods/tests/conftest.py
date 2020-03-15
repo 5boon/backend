@@ -1,6 +1,6 @@
 import pytest
 
-from tests.init_data import InitTestData
+from tests_utils.init_data import InitTestData
 
 
 @pytest.fixture(scope='function')
