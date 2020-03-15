@@ -1,6 +1,6 @@
 import pytest
 
-from today_mood.tests.init_data import InitTestData
+from tests.init_data import InitTestData
 
 
 @pytest.fixture(scope='function')
