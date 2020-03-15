@@ -32,13 +32,13 @@ jobs:
         pip install pytest-django
         pytest
         
-    - name: Slack Notification
-      uses: homoluctus/slatify@master
-      if: always()
-      with:
-        type: ${{ job.status }}
-        job_name: '*Github Actions*'
-        mention: 'here'
-        mention_if: 'failure'
-        channel: '#logs'
-        url: ${{ secrets.SLACK_WEBHOOK }}
+#     - name: Slack Notification
+#       uses: homoluctus/slatify@master
+#       if: always()
+#       with:
+#         type: ${{ job.status }}
+#         job_name: '*Github Actions*'
+#         mention: 'here'
+#         mention_if: 'failure'
+#         channel: '#logs'
+#         url: ${{ secrets.SLACK_WEBHOOK }}
