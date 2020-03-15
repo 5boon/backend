@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from apps.moods.models import UserMood, Mood
-from tests_utils.request_helper import pytest_request
+from tests.request_helper import pytest_request
 
 MOOD_FIELDS_LIST = ['id', 'status', 'simple_summary']
 
