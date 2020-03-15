@@ -13,7 +13,18 @@ jobs:
   build:
     
     runs-on: ubuntu-16.04
-    
+    services:
+      mariadb:
+        image: mysql:latest
+        ports:
+          - 3306
+        env:
+          MYSQL_USER: user
+          MYSQL_PASSWORD: password
+          MYSQL_DATABASE: test
+          MYSQL_ROOT_PASSWORD: password
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+        
     steps:
     - uses: actions/checkout@v2
     
@@ -29,8 +40,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        pip install pytest-django
-        cd today_mood && pytest
+        cd today_mood
         
 #     - name: Slack Notification
 #       uses: homoluctus/slatify@master
