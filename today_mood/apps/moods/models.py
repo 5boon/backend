@@ -21,7 +21,7 @@ class Mood(models.Model):
 
 
 class UserMood(models.Model):
-    created = models.DateTimeField('created date', blank=True, editable=False)
+    created = models.DateTimeField('created date', blank=True, editable=False, db_index=True)
     modified = models.DateTimeField('modified date', blank=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     mood = models.ForeignKey(Mood, on_delete=models.CASCADE)
