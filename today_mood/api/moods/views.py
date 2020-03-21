@@ -30,6 +30,7 @@ class MoodViewSet(mixins.CreateModelMixin,
 
         # 오늘 기분 수정
         if user_mood:
+            api_status = status.HTTP_200_OK
             mood = user_mood.mood
             update_fields = []
 
@@ -42,7 +43,6 @@ class MoodViewSet(mixins.CreateModelMixin,
                 update_fields.append('simple_summary')
 
             if update_fields:
-                api_status = status.HTTP_200_OK
                 user_mood.modified = today
                 user_mood.save(update_fields=['modified'])
                 mood.save(update_fields=update_fields)
