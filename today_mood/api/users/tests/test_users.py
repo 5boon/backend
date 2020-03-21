@@ -8,7 +8,7 @@ from rest_framework.reverse import reverse
 
 @pytest.fixture(scope='function')
 def mock_update_employment_center_name():
-    with mock.patch('utils.slack.notify_slack') as patch:
+    with mock.patch('api.users.views.notify_slack') as patch:
         yield patch
 
 
