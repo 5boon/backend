@@ -7,4 +7,5 @@ urlpatterns = [
     url(r'users/', include('api.users.urls')),
     url(r'me/', include('api.me.urls')),
     url(r'moods/', include('api.moods.urls')),
+    url(r'groups/', include('api.mood_groups.urls')),
 ]
