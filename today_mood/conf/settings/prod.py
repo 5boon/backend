@@ -13,7 +13,6 @@ SECRET_KEY = '5boon_secret_key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-SITE_URL = 'http://5boon.me'
 ALLOWED_HOSTS = ['*', 'localhost:8000', '127.0.0.1', 'localhost', '5boon.me']
 
 OAUTH2_CLIENT_KEY = '5boon_oauth2_client_key'
@@ -37,6 +36,7 @@ INSTALLED_APPS = [
 
     'apps.users',
     'apps.moods',
+    'apps.groups',
 ]
 
 #########################################
