@@ -13,7 +13,7 @@ class MoodGroup(models.Model):
         verbose_name = 'group'
 
 
-class UserGroup(models.Model):
+class UserMoodGroup(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     mood_group = models.ForeignKey(MoodGroup, on_delete=models.CASCADE)
     is_reader = models.BooleanField(default=False)
