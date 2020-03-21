@@ -42,7 +42,7 @@ class GroupViewSet(mixins.CreateModelMixin,
             is_reader=True
         )
 
-        return Response(group, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class MyGroupViewSet(mixins.ListModelMixin,
