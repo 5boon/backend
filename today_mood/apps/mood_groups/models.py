@@ -4,8 +4,8 @@ from apps.users.models import User
 
 
 class MoodGroup(models.Model):
-    created = models.DateTimeField('created date', blank=True, editable=False, db_index=True)
-    modified = models.DateTimeField('modified date', blank=True, editable=False)
+    created = models.DateTimeField('created date', blank=True)
+    modified = models.DateTimeField('modified date', blank=True)
     title = models.CharField(max_length=30, blank=True)
     summary = models.CharField(max_length=100, blank=True)
 
