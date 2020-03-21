@@ -36,7 +36,7 @@ INSTALLED_APPS = [
 
     'apps.users',
     'apps.moods',
-    'apps.groups',
+    'apps.mood_groups',
 ]
 
 #########################################
