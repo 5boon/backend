@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from apps.mood_groups.models import MoodGroup, UserMoodGroup
+from apps.moods.models import UserMood, Mood
 from apps.users.models import User
 from tests.request_helper import pytest_request
 
@@ -86,6 +87,21 @@ def test_my_group_list_detail(rf, client, mock_is_authenticated):
     )
 
     today = datetime.today()
+
+    # 기분 생성
+    mood = Mood.objects.create(
+        status=0,
+        simple_summary='test'
+    )
+
+    UserMood.objects.create(
+        created=today,
+        modified=today,
+        user=user,
+        mood=mood
+    )
+
+    # 그룹 생성
     mood_group = MoodGroup.objects.create(
         created=today,
         modified=today,
