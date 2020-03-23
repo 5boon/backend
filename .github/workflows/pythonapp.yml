@@ -19,9 +19,9 @@ jobs:
         ports:
           - 3306
         env:
-          MYSQL_USER: 5boon_ci_db
+          MYSQL_USER: ci_user
           MYSQL_PASSWORD: ci_user_pw123
-          MYSQL_DATABASE: test
+          MYSQL_DATABASE: 5boon_ci_db
           MYSQL_ROOT_PASSWORD: ci_user_pw123
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
         
