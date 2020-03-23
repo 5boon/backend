@@ -42,7 +42,7 @@ jobs:
       run: |
         cd today_mood
         cat /etc/mysql/my.cnf
-        mysql -uroot -p -h0.0.0.0
+        mysql -uroot -p -h127.0.0.1
         ci_user_pw123
 #        pytest
         
