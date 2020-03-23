@@ -42,6 +42,8 @@ jobs:
       run: |
         cd today_mood
         cat /etc/mysql/my.cnf
+        mysql -uroot -p -h0.0.0.0
+        ci_user_pw123
 #        pytest
         
 #     - name: Slack Notification
