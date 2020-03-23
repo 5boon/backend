@@ -13,7 +13,7 @@ jobs:
   build:
     
     runs-on: ubuntu-16.04
-    services:
+#     services:
 #       mariadb:
 #         image: mysql:latest
 #         ports:
