@@ -41,11 +41,13 @@ jobs:
     - name: Test with pytest
       run: |
         cd today_mood
-        #echo "bind-address		= 127.0.0.1" >> /etc/mysql/my.cnf 
         sudo systemctl start mysql
-        mysql uroot -pci_user_pw123 -h127.0.0.1
-        show databases;
-#        pytest
+        pytest
+#        echo "bind-address		= 127.0.0.1" >> /etc/mysql/my.cnf 
+        
+#        mysql uroot -pci_user_pw123 -h127.0.0.1
+#        show databases;
+
 #        mysql -uroot -p -h127.0.0.1
 #        ci_user_pw123
 #        pytest
