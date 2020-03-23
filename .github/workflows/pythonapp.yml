@@ -41,7 +41,7 @@ jobs:
     - name: Test with pytest
       run: |
         cd today_mood
-        echo "bind-address		= 127.0.0.1" >> /etc/mysql/my.cnf 
+        #echo "bind-address		= 127.0.0.1" >> /etc/mysql/my.cnf 
         cat /etc/mysql/my.cnf 
         pytest
 #        mysql -uroot -p -h127.0.0.1
