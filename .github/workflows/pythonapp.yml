@@ -13,20 +13,28 @@ jobs:
   build:
     
     runs-on: ubuntu-16.04
-    services:
-      mariadb:
-        image: mysql:latest
-        env:
-          MYSQL_USER: ci_user
-          MYSQL_PASSWORD: ci_user_pw123
-          MYSQL_DATABASE: 5boon_ci_db
-          MYSQL_ROOT_PASSWORD: ci_user_pw123
-        ports:
-          - 3306 
-        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+#     services:
+#       mariadb:
+#         image: mysql:latest
+#         env:
+#           MYSQL_USER: ci_user
+#           MYSQL_PASSWORD: ci_user_pw123
+#           MYSQL_DATABASE: 5boon_ci_db
+#           MYSQL_ROOT_PASSWORD: ci_user_pw123
+#         ports:
+#           - 3306 
+#         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
         
     steps:
     - uses: actions/checkout@v2
+    - name: Shutdown Ubuntu MySQL (SUDO)
+      run: sudo systemctl mysql stop
+    - name: Set up MySQL 5.7
+      uses: mirromutth/mysql-action@master
+      with:
+        mysql version: 5.7
+        mysql database: 5boon_ci_db
+        mysql root password: ci_user_pw123
     
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
@@ -43,7 +51,7 @@ jobs:
         cd today_mood
         sudo systemctl start mysql
         cat /etc/mysql/my.cnf 
-#        pytest
+        pytest
 #        echo "bind-address		= 127.0.0.1" >> /etc/mysql/my.cnf 
         
 #        mysql uroot -pci_user_pw123 -h127.0.0.1
