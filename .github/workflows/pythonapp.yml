@@ -42,7 +42,8 @@ jobs:
       run: |
         cd today_mood
         sudo systemctl start mysql
-        pytest
+        cat /etc/mysql/my.cnf 
+#        pytest
 #        echo "bind-address		= 127.0.0.1" >> /etc/mysql/my.cnf 
         
 #        mysql uroot -pci_user_pw123 -h127.0.0.1
