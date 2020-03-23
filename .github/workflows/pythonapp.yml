@@ -16,13 +16,13 @@ jobs:
     services:
       mariadb:
         image: mysql:latest
-        ports:
-          - 3306
         env:
           MYSQL_USER: ci_user
           MYSQL_PASSWORD: ci_user_pw123
           MYSQL_DATABASE: 5boon_ci_db
           MYSQL_ROOT_PASSWORD: ci_user_pw123
+        ports:
+          - 13306:3306 
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
         
     steps:
