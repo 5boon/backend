@@ -122,7 +122,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': '5boon_ci_db',
-        'USER': 'ci_user',
+        'USER': 'root',
         'HOST': '127.0.0.1',
         'PASSWORD': 'ci_user_pw123',
     }
