@@ -11,23 +11,22 @@ on:
 
 jobs:
   build:
-    
     runs-on: ubuntu-16.04
     services:
       mariadb:
         image: mysql:latest
-        ports:
-          - 3306
         env:
-          MYSQL_USER: user
-          MYSQL_PASSWORD: password
-          MYSQL_DATABASE: test
-          MYSQL_ROOT_PASSWORD: password
+          MYSQL_USER: ci_user
+          MYSQL_PASSWORD: ci_user_pw123
+          MYSQL_DATABASE: 5boon_ci_db
+          MYSQL_ROOT_PASSWORD: ci_user_pw123
+        ports:
+          - 3306:3306 
         options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
         
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: Set up Python 3.7
       uses: actions/setup-python@v1
       with:
@@ -37,18 +36,8 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r today_mood/requirements/base.txt
-
-    - name: Test with pytest
+        
+    - name: Start Pytest
       run: |
         cd today_mood
-        
-#     - name: Slack Notification
-#       uses: homoluctus/slatify@master
-#       if: always()
-#       with:
-#         type: ${{ job.status }}
-#         job_name: '*Github Actions*'
-#         mention: 'here'
-#         mention_if: 'failure'
-#         channel: '#logs'
-#         url: ${{ secrets.SLACK_WEBHOOK }}
+        pytest
