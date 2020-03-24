@@ -1,8 +1,6 @@
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -13,11 +11,12 @@ SECRET_KEY = '5boon_secret_key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*', 'localhost:8000', '127.0.0.1', 'localhost', '5boon.me']
+ALLOWED_HOSTS = ['*', 'localhost:8000', '127.0.0.1', 'localhost']
 
 OAUTH2_CLIENT_KEY = '5boon_oauth2_client_key'
 
 AUTH_USER_MODEL = "users.user"
+
 
 #########################################
 #     Application definition
@@ -38,6 +37,7 @@ INSTALLED_APPS = [
     'apps.moods',
     'apps.mood_groups',
 ]
+
 
 #########################################
 #                미들웨어
@@ -79,23 +79,12 @@ AUTHENTICATION_BACKENDS = (
 #########################################
 #                CORS
 #########################################
-
 CORS_ORIGIN_ALLOW_ALL = True
-
-#CORS_ALLOW_CREDENTIALS = False
 
 
 #########################################
 #               Oauth2
 #########################################
-# OAUTH2_PROVIDER['ACCESS_TOKEN_EXPIRE_SECONDS'] = 24 * 60 * 60    # 24 Hours
-
-# OAUTH2_PROVIDER = {
-#     # other OAUTH2 settings
-#     'OAUTH2_BACKEND_CLASS': 'oauth2_provider.oauth2_backends.JSONOAuthLibCore'
-# }
-
-# OAUTH2_PROVIDER_APPLICATION_MODEL = 'users.User'
 
 ROOT_URLCONF = 'urls'
 
@@ -117,16 +106,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'today_mood.wsgi.application'
 
+
 #########################################
-#           데이터 베이스 세팅
+#     GitHub Action 데이터 베이스 세팅
 #########################################
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '5boondb',
-        'OPTIONS': {
-            'read_default_file': '/etc/mysql/conf.d/5boon.cnf',
-        },
+        'NAME': '5boon_ci_db',
+        'USER': 'root',
+        'HOST': '127.0.0.1',
+        'PASSWORD': 'ci_user_pw123',
     }
 }
 
@@ -156,22 +146,12 @@ USE_TZ = True
 #########################################
 #           센트리 리포팅
 #########################################
-sentry_sdk.init(
-    dsn="sentry_channel_key",
-    integrations=[DjangoIntegration()],
-
-    # If you wish to associate users to errors (assuming you are using
-    # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=True
-)
 
 #########################################
 #           슬랙 채널
 #########################################
-SLACK_CHANNEL_JOINED_USER = 'slack_channel_joined_user_key'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/deploy/sites/static/'
