@@ -50,7 +50,7 @@ jobs:
       run: |
         cd today_mood
         sudo systemctl start mysql
-        cat /etc/mysql/my.cnf 
+        docker ps
         pytest
 #        echo "bind-address		= 127.0.0.1" >> /etc/mysql/my.cnf 
         
