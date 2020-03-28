@@ -13,6 +13,10 @@ class UserSerializer(serializers.ModelSerializer):
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(min_length=6, max_length=20, write_only=True)
 
+    class Meta:
+        model = User
+        fields = ('username', 'nickname', 'password', 'email')
+
     def validate(self, data):
         try:
             user = User.objects.filter(username=data.get('username'))
@@ -23,13 +27,17 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
         return data
 
-    class Meta:
-        model = User
-        fields = ('username', 'nickname', 'password',)
-
     def create(self, validated_data):
         instance = User.objects.create_user(**validated_data)
         return instance
+
+
+class PasswordFindSerializer(serializers.Serializer):
+    email = serializers.EmailField(allow_null=False, allow_blank=False, required=True)
+    username = serializers.CharField(max_length=150, required=True)
+
+    class Meta:
+        fields = ('email', 'username')
 
 
 class SnsOauthSerializer(serializers.BaseSerializer):

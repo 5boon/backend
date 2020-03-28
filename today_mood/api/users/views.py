@@ -1,8 +1,10 @@
-from rest_framework import viewsets, permissions, mixins
+from rest_framework import viewsets, permissions, mixins, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.users.serializers import UserSerializer, UserRegisterSerializer
+from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer
+from api.users.utils import send_pw_email, create_temp_pw
 from apps.users.models import User
 from utils.slack import notify_slack
 
@@ -23,16 +25,17 @@ class UserInformationViewSet(viewsets.ModelViewSet):
         return result
 
 
-class UserRegister(mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+class UserRegisterViewSet(mixins.CreateModelMixin,
+                          mixins.RetrieveModelMixin,
+                          GenericViewSet):
     """
-
         User 등록 API
-
+        : User 등록은 permission 없이 호출 가능
     """
 
     queryset = User.objects.all()
     serializer_class = UserRegisterSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny, )
     lookup_url_kwarg = 'username'
     lookup_field = 'username'
 
@@ -56,7 +59,53 @@ class UserRegister(mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericVi
         notify_slack(attachments, '#join-user')
         return instance
 
+
+class UserPasswordViewSet(mixins.CreateModelMixin,
+                          mixins.UpdateModelMixin,
+                          GenericViewSet):
+    """
+        비밀번호 찾기, 변경 API
+        : User 패스워드 찾기는 permission 없이 호출 가능 ( id, email 로 체크 )
+    """
+
+    queryset = User.objects.all()
+    serializer_class = PasswordFindSerializer
+    permission_classes = (permissions.AllowAny, )
+
+    def create(self, request, *args, **kwargs):
+        pw_serializer = self.get_serializer(data=request.data)
+
+        if not pw_serializer.is_valid():
+            return Response()
+
+        user = User.objects.filter(
+            username=pw_serializer.validated_data.get('username'),
+            email=pw_serializer.validated_data.get('email'),
+        ).first()
+
+        if user:
+            new_pw = create_temp_pw()
+            user.set_password(new_pw)
+            user.save(update_fields=['password'])
+            send_pw_email(email_address=user.email, new_pw=new_pw)
+
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def update(self, request, *args, **kwargs):
+        new_pw = request.data.get('new_password')
+
+        if new_pw is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        user.set_password(new_pw)
+        user.save(update_fields=['password'])
+
+        return Response(status=status.HTTP_200_OK)
+
     def get_permissions(self):
-        if self.action == 'create':
-            self.permission_classes = (permissions.AllowAny,)
-        return super(UserRegister, self).get_permissions()
+        if self.action == 'update':
+            self.permission_classes = (permissions.IsAuthenticated, )
+        return super(UserPasswordViewSet, self).get_permissions()
