@@ -1,11 +1,14 @@
 from datetime import datetime
 
+from django.utils import timezone
 from rest_framework import permissions, mixins, status, exceptions
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from api.moods.serializers import MoodSerializer
 from apps.moods.models import Mood, UserMood
+
+MOOD_LIMITED_COUNT = 100
 
 
 class MoodViewSet(mixins.CreateModelMixin,
@@ -21,34 +24,16 @@ class MoodViewSet(mixins.CreateModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        today = datetime.today()
+        today = timezone.localtime()
         user = self.request.user
-        user_mood = UserMood.objects.filter(
+
+        user_mood_count = UserMood.objects.filter(
             user=user,
             created__date=today.date()
-        ).prefetch_related('mood').first()
-
-        # 오늘 기분 수정
-        if user_mood:
-            api_status = status.HTTP_200_OK
-            mood = user_mood.mood
-            update_fields = []
-
-            if mood.status != serializer.validated_data.get('status'):
-                mood.status = serializer.validated_data.get('status')
-                update_fields.append('status')
-
-            if mood.simple_summary != serializer.validated_data.get('simple_summary'):
-                mood.simple_summary = serializer.validated_data.get('simple_summary')
-                update_fields.append('simple_summary')
-
-            if update_fields:
-                user_mood.modified = today
-                user_mood.save(update_fields=['modified'])
-                mood.save(update_fields=update_fields)
+        ).count()
 
         # 오늘 기분 생성
-        else:
+        if user_mood_count < MOOD_LIMITED_COUNT:
             api_status = status.HTTP_201_CREATED
             mood = serializer.save()
 
@@ -58,6 +43,12 @@ class MoodViewSet(mixins.CreateModelMixin,
                 user=self.request.user,
                 mood=mood
             )
+        else:
+            err_data = {
+                'err_code': 'limited',
+                'description': 'You have exceeded 100 moods.'
+            }
+            return err_data, status.HTTP_400_BAD_REQUEST
 
         return self.get_serializer(instance=mood).data, api_status
 
@@ -72,17 +63,17 @@ class MoodViewSet(mixins.CreateModelMixin,
         if request.GET.get('date'):
             date = datetime.strptime(request.GET.get('date'), '%Y-%m-%d').date()
         else:
-            date = datetime.today().date()
+            date = timezone.localtime().date()
 
         user = self.request.user
-        user_mood = UserMood.objects.filter(
-            user=user,
-            created__date=date
-        ).prefetch_related('mood').first()
+        mood_list = Mood.objects.filter(
+            usermood__user=user,
+            usermood__created__date=date
+        )
 
-        if not user_mood:
+        if not mood_list:
             raise exceptions.NotFound
 
-        mood = self.get_serializer(instance=user_mood.mood).data
+        mood = self.get_serializer(mood_list, many=True).data
 
         return Response(mood)
