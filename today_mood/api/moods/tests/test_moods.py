@@ -1,7 +1,6 @@
-from datetime import datetime
-
 import mock
 import pytest
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -75,7 +74,7 @@ def test_today_mood_list(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = datetime.today()
+    today = timezone.localtime()
 
     mood = Mood.objects.create(
         status=0,

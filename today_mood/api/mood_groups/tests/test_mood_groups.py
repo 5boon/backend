@@ -1,7 +1,6 @@
-from datetime import datetime
-
 import mock
 import pytest
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -54,7 +53,7 @@ def test_my_group_list(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = datetime.today()
+    today = timezone.localtime()
     mood_group = MoodGroup.objects.create(
         created=today,
         modified=today,
@@ -86,7 +85,7 @@ def test_my_group_list_detail(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = datetime.today()
+    today = timezone.localtime()
 
     # 기분 생성
     mood = Mood.objects.create(

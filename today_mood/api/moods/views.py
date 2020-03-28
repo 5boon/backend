@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.utils import timezone
 from rest_framework import permissions, mixins, status, exceptions
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -23,7 +24,7 @@ class MoodViewSet(mixins.CreateModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        today = datetime.today()
+        today = timezone.localtime()
         user = self.request.user
 
         user_mood_count = UserMood.objects.filter(
@@ -62,7 +63,7 @@ class MoodViewSet(mixins.CreateModelMixin,
         if request.GET.get('date'):
             date = datetime.strptime(request.GET.get('date'), '%Y-%m-%d').date()
         else:
-            date = datetime.today().date()
+            date = timezone.localtime().date()
 
         user = self.request.user
         mood_list = Mood.objects.filter(
