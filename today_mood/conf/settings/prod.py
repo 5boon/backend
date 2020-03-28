@@ -182,6 +182,16 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+
+#########################################
+#      Time Zone and language
+#########################################
+USE_TZ = False
+USE_I18N = True
+USE_L10N = True
+TIME_ZONE = 'Asia/Seoul'
+LANGUAGE_CODE = 'ko-kr'
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
