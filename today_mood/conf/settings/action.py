@@ -137,11 +137,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+#########################################
+#      Time Zone and language
+#########################################
+USE_TZ = True  # DB에는 UTC로 저장
 USE_I18N = True
 USE_L10N = True
-USE_TZ = True
+TIME_ZONE = 'Asia/Seoul'
+LANGUAGE_CODE = 'ko-kr'
+
 
 #########################################
 #           센트리 리포팅

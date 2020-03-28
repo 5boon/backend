@@ -15,6 +15,7 @@ class Mood(models.Model):
 
     status = models.SmallIntegerField('status', choices=STATUS_CHOICES, blank=False) # 상태
     simple_summary = models.CharField(max_length=200, blank=True) # 한줄 요약
+    do_show_summary = models.BooleanField(default=True) # 한줄 요약 공개 여부
 
     class Meta:
         verbose_name = 'mood'
