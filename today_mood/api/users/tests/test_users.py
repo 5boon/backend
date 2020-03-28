@@ -28,3 +28,12 @@ def test_user_register(rf, client, mock_update_employment_center_name):
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data.get('username') == data.get('username')
     assert response.data.get('nickname') == data.get('nickname')
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+def test_password_find(rf, client, mock_update_employment_center_name):
+    url = reverse(viewname="users:user_password")
+
+    response = client.post(url)
+    assert response.status_code == status.HTTP_201_CREATED
