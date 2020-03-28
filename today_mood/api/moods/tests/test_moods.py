@@ -9,7 +9,7 @@ from apps.moods.models import UserMood, Mood
 from apps.users.models import User
 from tests.request_helper import pytest_request
 
-MOOD_FIELDS_LIST = ['id', 'status', 'simple_summary']
+MOOD_FIELDS_LIST = ['id', 'status', 'simple_summary', 'do_show_summary']
 
 
 # Oauth2 인증 Mock 처리 ( TODO: Oauth2.0 도 테스트 될 수 있게 로직 추가해야함 )
@@ -96,4 +96,4 @@ def test_today_mood_list(rf, client, mock_is_authenticated):
                               user=user)
 
     assert response.status_code == status.HTTP_200_OK
-    assert list(response.data.keys()) == MOOD_FIELDS_LIST
+    assert list(response.data[0].keys()) == MOOD_FIELDS_LIST
