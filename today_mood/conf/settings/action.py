@@ -140,7 +140,7 @@ AUTH_PASSWORD_VALIDATORS = [
 #########################################
 #      Time Zone and language
 #########################################
-USE_TZ = False
+USE_TZ = True  # DB에는 UTC로 저장
 USE_I18N = True
 USE_L10N = True
 TIME_ZONE = 'Asia/Seoul'
