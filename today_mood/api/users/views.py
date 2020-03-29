@@ -89,7 +89,10 @@ class UserPasswordViewSet(mixins.CreateModelMixin,
             user.save(update_fields=['password'])
             send_pw_email(email_address=user.email, new_pw=new_pw)
 
-            return Response(status=status.HTTP_200_OK)
+            data = {
+                'email': user.email
+            }
+            return Response(data=data, status=status.HTTP_200_OK)
 
         return Response(status=status.HTTP_404_NOT_FOUND)
 
