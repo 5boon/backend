@@ -54,7 +54,7 @@ def test_user_register(rf, client, mock_update_employment_center_name):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_password_find(rf, client, mock_send_pw_email):
+def test_user_password_find(rf, client, mock_send_pw_email):
     url = reverse(viewname="users:user_password")
 
     user = User.objects.create(
@@ -80,7 +80,7 @@ def test_password_find(rf, client, mock_send_pw_email):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_password_update(rf, client, mock_is_authenticated):
+def test_user_password_update(rf, client, mock_is_authenticated):
     user = User.objects.create(
         username='test_user',
         nickname='test_nickname',
@@ -98,5 +98,31 @@ def test_password_update(rf, client, mock_is_authenticated):
                               url=url,
                               data=data,
                               user=user)
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+def test_user_id_find(rf, client, mock_send_pw_email):
+    url = reverse(viewname="users:user_id")
+
+    user = User.objects.create(
+        username='test_user',
+        nickname='test_nickname',
+        password='test_pw',
+        email='test@5boon.com'
+    )
+
+    data = {
+        'nickname': user.nickname,
+        'email': user.email
+    }
+
+    response = pytest_request(rf,
+                              method='post',
+                              url=url,
+                              user=user,
+                              data=data)
 
     assert response.status_code == status.HTTP_200_OK
