@@ -24,7 +24,7 @@ class MoodViewSet(mixins.CreateModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
-        today = timezone.localtime()
+        today = timezone.now()
         user = self.request.user
 
         user_mood_count = UserMood.objects.filter(
@@ -63,7 +63,7 @@ class MoodViewSet(mixins.CreateModelMixin,
         if request.GET.get('date'):
             date = datetime.strptime(request.GET.get('date'), '%Y-%m-%d').date()
         else:
-            date = timezone.localtime().date()
+            date = timezone.now().date()
 
         user = self.request.user
         mood_list = Mood.objects.filter(

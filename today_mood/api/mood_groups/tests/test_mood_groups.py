@@ -53,7 +53,7 @@ def test_my_group_list(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = timezone.localtime()
+    today = timezone.now()
     mood_group = MoodGroup.objects.create(
         created=today,
         modified=today,
@@ -85,7 +85,7 @@ def test_my_group_list_detail(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = timezone.localtime()
+    today = timezone.now()
 
     # 기분 생성
     mood = Mood.objects.create(
