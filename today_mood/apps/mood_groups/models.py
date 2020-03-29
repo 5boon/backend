@@ -1,11 +1,12 @@
 from django.db import models
+from django.utils import timezone
 
 from apps.users.models import User
 
 
 class MoodGroup(models.Model):
-    created = models.DateTimeField('created date', blank=True)
-    modified = models.DateTimeField('modified date', blank=True)
+    created = models.DateTimeField('created date', default=timezone.now, blank=True)
+    modified = models.DateTimeField('modified date', default=timezone.now, blank=True)
     title = models.CharField(max_length=30, blank=True)
     summary = models.CharField(max_length=100, blank=True)
 
