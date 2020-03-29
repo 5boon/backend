@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer
+from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer, IDFindSerializer
 from api.users.utils import send_pw_email, create_temp_pw
 from apps.users.models import User
 from utils.slack import notify_slack
@@ -109,3 +109,34 @@ class UserPasswordViewSet(mixins.CreateModelMixin,
         if self.action == 'update':
             self.permission_classes = (permissions.IsAuthenticated, )
         return super(UserPasswordViewSet, self).get_permissions()
+
+
+class UserIDViewSet(mixins.CreateModelMixin,
+                    GenericViewSet):
+    """
+        ID 찾기 (permission 없이 호출 가능)
+    """
+
+    queryset = User.objects.all()
+    serializer_class = IDFindSerializer
+    permission_classes = (permissions.AllowAny, )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response()
+
+        user = User.objects.filter(
+            nickname=serializer.validated_data.get('nickname'),
+            email=serializer.validated_data.get('email'),
+        ).first()
+
+        if user:
+            data = {
+                'username': user.username,
+                'date_joined': user.date_joined
+            }
+            return Response(data=data, status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)

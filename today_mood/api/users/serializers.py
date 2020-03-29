@@ -40,6 +40,14 @@ class PasswordFindSerializer(serializers.Serializer):
         fields = ('email', 'username')
 
 
+class IDFindSerializer(serializers.Serializer):
+    email = serializers.EmailField(allow_null=False, allow_blank=False, required=True)
+    nickname = serializers.CharField(max_length=50, required=True)
+
+    class Meta:
+        fields = ('email', 'nickname')
+
+
 class SnsOauthSerializer(serializers.BaseSerializer):
     token = serializers.CharField(min_length=1, max_length=100, required=True)
     sns_type = serializers.ChoiceField(choices=['apple', 'kakao'], required=True)
