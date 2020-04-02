@@ -79,6 +79,10 @@ class MyGroupViewSet(mixins.ListModelMixin,
 
         user_mood_list = []
         for user_id in user_id_list:
+            # 본인 기분은 제외
+            if user_id == request.user.id:
+                continue
+
             try:
                 user = User.objects.filter(id=user_id).get()
             except User.DoesNotExist:
