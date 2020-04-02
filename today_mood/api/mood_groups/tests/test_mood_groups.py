@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from apps.mood_groups.models import MoodGroup, UserMoodGroup
+from apps.mood_groups.models import MoodGroup, UserMoodGroup, MoodGroupInvitation
 from apps.moods.models import UserMood, Mood
 from apps.users.models import User
 from tests.request_helper import pytest_request
@@ -122,5 +122,145 @@ def test_my_group_list_detail(rf, client, mock_is_authenticated):
                               method='get',
                               url=url,
                               user=user)
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+def test_invitation_list(rf, client, mock_is_authenticated):
+    user = User.objects.create(
+        username='test_user',
+        name='test_name',
+        password='test_pw'
+    )
+
+    guest = User.objects.create(
+        username='test_guest',
+        name='test_guest',
+        password='test_pw'
+    )
+
+    today = timezone.now()
+    mood_group = MoodGroup.objects.create(
+        created=today,
+        modified=today,
+        title='5boon',
+        summary='5boon 팀원들과의 기분 공유'
+    )
+
+    UserMoodGroup.objects.create(
+        user=user,
+        mood_group=mood_group,
+        is_reader=True
+    )
+
+    MoodGroupInvitation.objects.create(
+        guest=guest,
+        invited_by=user.name,
+        mood_group=mood_group
+    )
+
+    url = reverse(viewname="mood_groups:invitation-list")
+    response = pytest_request(rf,
+                              method='get',
+                              url=url,
+                              user=guest)
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+def test_invitation_create(rf, client, mock_is_authenticated):
+    user = User.objects.create(
+        username='test_user',
+        name='test_name',
+        password='test_pw'
+    )
+
+    guest = User.objects.create(
+        username='test_guest',
+        name='test_guest',
+        password='test_pw'
+    )
+
+    today = timezone.now()
+    mood_group = MoodGroup.objects.create(
+        created=today,
+        modified=today,
+        title='5boon',
+        summary='5boon 팀원들과의 기분 공유'
+    )
+
+    UserMoodGroup.objects.create(
+        user=user,
+        mood_group=mood_group,
+        is_reader=True
+    )
+    data = {
+        'guest': guest.id,
+        'mood_group': mood_group.id
+    }
+
+    url = reverse(viewname="mood_groups:invitation-list")
+    response = pytest_request(rf,
+                              method='post',
+                              url=url,
+                              user=user,
+                              data=data)
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+def test_invitation_approve(rf, client, mock_is_authenticated):
+    user = User.objects.create(
+        username='test_user',
+        name='test_name',
+        password='test_pw'
+    )
+
+    guest = User.objects.create(
+        username='test_guest',
+        name='test_guest',
+        password='test_pw'
+    )
+
+    today = timezone.now()
+    mood_group = MoodGroup.objects.create(
+        created=today,
+        modified=today,
+        title='5boon',
+        summary='5boon 팀원들과의 기분 공유'
+    )
+
+    UserMoodGroup.objects.create(
+        user=user,
+        mood_group=mood_group,
+        is_reader=True
+    )
+
+    invitation = MoodGroupInvitation.objects.create(
+        guest=guest,
+        invited_by=user.name,
+        mood_group=mood_group
+    )
+
+    MoodGroupInvitation.objects.create(
+        guest=guest,
+        invited_by=user.name,
+        mood_group=mood_group
+    )
+
+    url = reverse(
+        viewname="mood_groups:invitation-detail",
+        kwargs={"pk": invitation.id}
+    )
+    response = pytest_request(rf,
+                              method='patch',
+                              url=url,
+                              user=guest)
 
     assert response.status_code == status.HTTP_200_OK
