@@ -99,7 +99,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
 
             user_mood_data = UserMoodSerializers(instance=user_mood).data
             mood_data = user_mood_data.get('mood')
-            do_show_summary = mood_data.get('do_show_summary')
+            do_show_summary = user_mood.do_show_summary
 
             data = {
                 'user': user.name,
