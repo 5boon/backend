@@ -3,7 +3,7 @@ from django.db import models
 
 
 class User(auth_models.AbstractUser):
-    nickname = models.CharField(verbose_name='name', max_length=50)
+    name = models.CharField(verbose_name='name', max_length=50)
 
     class Meta:
         verbose_name = 'user'

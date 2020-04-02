@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.contrib.sessions.backends.cache import SessionStore
 from django.urls import resolve
 from rest_framework.test import force_authenticate

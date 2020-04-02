@@ -186,7 +186,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 #########################################
 #      Time Zone and language
 #########################################
-USE_TZ = True  # DB에는 UTC로 저장
+USE_TZ = False
 USE_I18N = True
 USE_L10N = True
 TIME_ZONE = 'Asia/Seoul'
