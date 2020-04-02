@@ -86,7 +86,7 @@ class MoodViewSet(mixins.CreateModelMixin,
         return self.get_serializer(instance=mood).data
 
     def create(self, request, *args, **kwargs):
-        show_summary_group_list = request.data.get('group_list')
+        show_summary_group_list = request.data.get('group_list', [])
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
