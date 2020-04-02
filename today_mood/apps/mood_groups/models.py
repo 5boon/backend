@@ -23,7 +23,7 @@ class UserMoodGroup(models.Model):
         verbose_name = 'user_mood_group'
 
     def __str__(self):
-        return '{}-{}'.format(self.mood_group.title, self.user.username)
+        return '{}-{}'.format(self.mood_group.title, self.user.name)
 
 
 class MoodGroupInvitation(models.Model):
@@ -35,4 +35,4 @@ class MoodGroupInvitation(models.Model):
         verbose_name = 'user_mood_group'
 
     def __str__(self):
-        return '{}-{}'.format(self.mood_group.title, self.user.username)
+        return 'group: {} - guest {}'.format(self.mood_group.title, self.guest.name)
