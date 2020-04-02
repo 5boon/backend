@@ -131,7 +131,7 @@ def test_user_id_find(rf, client, mock_send_pw_email):
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
 def test_user_email_check(rf, client, mock_send_pw_email):
-    url = reverse(viewname="users:user_id")
+    url = reverse(viewname="users:user_check")
 
     user = User.objects.create(
         username='test_user',
@@ -145,9 +145,35 @@ def test_user_email_check(rf, client, mock_send_pw_email):
     }
 
     response = pytest_request(rf,
-                              method='post',
+                              method='get',
                               url=url,
                               user=user,
                               get=get)
 
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+def test_user_username_check(rf, client, mock_send_pw_email):
+    url = reverse(viewname="users:user_check")
+
+    user = User.objects.create(
+        username='test_user',
+        name='test_name',
+        password='test_pw',
+        email='test@5boon.com'
+    )
+
+    get = {
+        'username': user.username
+    }
+
+    response = pytest_request(rf,
+                              method='get',
+                              url=url,
+                              user=user,
+                              get=get)
+
+    assert response.status_code == status.HTTP_200_OK
+    
