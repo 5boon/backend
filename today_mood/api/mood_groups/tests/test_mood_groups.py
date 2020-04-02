@@ -85,33 +85,57 @@ def test_my_group_list_detail(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = timezone.now()
+    guest = User.objects.create(
+        username='test_guest',
+        name='test_guest',
+        password='test_pw'
+    )
 
-    # 기분 생성
+    # user 기분 생성
     mood = Mood.objects.create(
         status=0,
         simple_summary='test'
     )
 
     UserMood.objects.create(
-        created=today,
-        modified=today,
         user=user,
         mood=mood
     )
 
+    # guest 기분 생성
+    guest_mood = Mood.objects.create(
+        status=2,
+        simple_summary='guest mood summary'
+    )
+
+    UserMood.objects.create(
+        user=guest,
+        mood=guest_mood
+    )
+
+
     # 그룹 생성
     mood_group = MoodGroup.objects.create(
-        created=today,
-        modified=today,
         title='5boon',
         summary='5boon 팀원들과의 기분 공유'
+    )
+
+    UserMood.objects.create(
+        user=guest,
+        mood=guest_mood,
+        mood_group=mood_group
     )
 
     user_mood_group = UserMoodGroup.objects.create(
         user=user,
         mood_group=mood_group,
         is_reader=True
+    )
+
+    guest_mood_group = UserMoodGroup.objects.create(
+        user=guest,
+        mood_group=mood_group,
+        is_reader=False
     )
 
     url = reverse(
@@ -141,10 +165,7 @@ def test_invitation_list(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = timezone.now()
     mood_group = MoodGroup.objects.create(
-        created=today,
-        modified=today,
         title='5boon',
         summary='5boon 팀원들과의 기분 공유'
     )
@@ -185,10 +206,7 @@ def test_invitation_create(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = timezone.now()
     mood_group = MoodGroup.objects.create(
-        created=today,
-        modified=today,
         title='5boon',
         summary='5boon 팀원들과의 기분 공유'
     )
@@ -228,10 +246,7 @@ def test_invitation_approve(rf, client, mock_is_authenticated):
         password='test_pw'
     )
 
-    today = timezone.now()
     mood_group = MoodGroup.objects.create(
-        created=today,
-        modified=today,
         title='5boon',
         summary='5boon 팀원들과의 기분 공유'
     )
