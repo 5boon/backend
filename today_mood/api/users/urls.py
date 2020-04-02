@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 from django.conf.urls import url
 from rest_framework import routers
 
-from api.users.views import UserInformationViewSet, UserRegisterViewSet, UserPasswordViewSet
+from api.users.views import UserInformationViewSet, UserRegisterViewSet, UserPasswordViewSet, UserIDViewSet, \
+    UserCheckViewSet
 
 app_name = 'users'
 
@@ -22,9 +23,19 @@ password = UserPasswordViewSet.as_view({
     'patch': 'update'
 })
 
+identification = UserIDViewSet.as_view({
+    'post': 'create'
+})
+
+check = UserCheckViewSet.as_view({
+    'get': 'list'
+})
+
 urlpatterns = [
     url(r'^register/$', resister, name='user_register'),
+    url(r'^check/$', check, name='user_check'),
     url(r'^password/$', password, name='user_password'),
+    url(r'^id/$', identification, name='user_id'),
 ]
 
 router = routers.SimpleRouter()

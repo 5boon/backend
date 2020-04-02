@@ -3,11 +3,17 @@ from rest_framework import serializers
 from apps.users.models import User
 
 
+class SimpleUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'email']
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'date_joined', 'nickname', 'username', 'email']
+        fields = ['id', 'date_joined', 'name', 'username', 'email']
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -15,7 +21,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'nickname', 'password', 'email')
+        fields = ('username', 'name', 'password', 'email')
 
     def validate(self, data):
         try:
@@ -38,6 +44,14 @@ class PasswordFindSerializer(serializers.Serializer):
 
     class Meta:
         fields = ('email', 'username')
+
+
+class IDFindSerializer(serializers.Serializer):
+    email = serializers.EmailField(allow_null=False, allow_blank=False, required=True)
+    name = serializers.CharField(max_length=50, required=True)
+
+    class Meta:
+        fields = ('email', 'name')
 
 
 class SnsOauthSerializer(serializers.BaseSerializer):

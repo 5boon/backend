@@ -7,7 +7,7 @@ class MoodSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mood
-        fields = ['id', 'status', 'simple_summary', 'do_show_summary']
+        fields = ['id', 'status', 'simple_summary']
 
     def to_representation(self, instance):
         ret = super(MoodSerializer, self).to_representation(instance)
@@ -20,4 +20,4 @@ class UserMoodSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = UserMood
-        fields = ['id', 'created', 'user', 'mood']
+        fields = ['id', 'created', 'user', 'mood', 'do_show_summary']

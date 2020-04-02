@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer
+from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer, IDFindSerializer, \
+    SimpleUserSerializer
 from api.users.utils import send_pw_email, create_temp_pw
 from apps.users.models import User
 from utils.slack import notify_slack
@@ -49,8 +50,8 @@ class UserRegisterViewSet(mixins.CreateModelMixin,
                 "author_name": instance.username,
                 "fields": [
                     {
-                        "title": "닉네임",
-                        "value": instance.nickname
+                        "title": "이름",
+                        "value": instance.name
                     }
                 ]
             }
@@ -58,6 +59,35 @@ class UserRegisterViewSet(mixins.CreateModelMixin,
 
         notify_slack(attachments, '#join-user')
         return instance
+
+
+class UserCheckViewSet(mixins.ListModelMixin,
+                       GenericViewSet):
+    """
+        User email, id 체크
+    """
+
+    queryset = User.objects.all()
+    serializer_class = SimpleUserSerializer
+    permission_classes = (permissions.AllowAny, )
+
+    def list(self, request, *args, **kwargs):
+        data = request.GET
+        email = data.get('email')
+        username = data.get('username')
+
+        if email:
+            user = self.queryset.filter(email=email).first()
+        elif username:
+            user = self.queryset.filter(username=username).first()
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if user:
+            serializer = self.get_serializer(instance=user)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class UserPasswordViewSet(mixins.CreateModelMixin,
@@ -89,7 +119,10 @@ class UserPasswordViewSet(mixins.CreateModelMixin,
             user.save(update_fields=['password'])
             send_pw_email(email_address=user.email, new_pw=new_pw)
 
-            return Response(status=status.HTTP_200_OK)
+            data = {
+                'email': user.email
+            }
+            return Response(data=data, status=status.HTTP_200_OK)
 
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -109,3 +142,34 @@ class UserPasswordViewSet(mixins.CreateModelMixin,
         if self.action == 'update':
             self.permission_classes = (permissions.IsAuthenticated, )
         return super(UserPasswordViewSet, self).get_permissions()
+
+
+class UserIDViewSet(mixins.CreateModelMixin,
+                    GenericViewSet):
+    """
+        ID 찾기 (permission 없이 호출 가능)
+    """
+
+    queryset = User.objects.all()
+    serializer_class = IDFindSerializer
+    permission_classes = (permissions.AllowAny, )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response()
+
+        user = User.objects.filter(
+            name=serializer.validated_data.get('name'),
+            email=serializer.validated_data.get('email'),
+        ).first()
+
+        if user:
+            data = {
+                'username': user.username,
+                'date_joined': user.date_joined
+            }
+            return Response(data=data, status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
