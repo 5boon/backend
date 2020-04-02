@@ -140,7 +140,7 @@ def test_user_email_check(rf, client, mock_send_pw_email):
         email='test@5boon.com'
     )
 
-    get = {
+    data = {
         'email': user.email
     }
 
@@ -148,7 +148,7 @@ def test_user_email_check(rf, client, mock_send_pw_email):
                               method='get',
                               url=url,
                               user=user,
-                              get=get)
+                              data=data)
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -165,7 +165,7 @@ def test_user_username_check(rf, client, mock_send_pw_email):
         email='test@5boon.com'
     )
 
-    get = {
+    data = {
         'username': user.username
     }
 
@@ -173,7 +173,6 @@ def test_user_username_check(rf, client, mock_send_pw_email):
                               method='get',
                               url=url,
                               user=user,
-                              get=get)
+                              data=data)
 
     assert response.status_code == status.HTTP_200_OK
-    

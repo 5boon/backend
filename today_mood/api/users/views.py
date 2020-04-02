@@ -70,7 +70,21 @@ class UserCheckViewSet(mixins.ListModelMixin,
     permission_classes = (permissions.AllowAny, )
 
     def list(self, request, *args, **kwargs):
-        return Response()
+        data = request.GET
+        email = data.get('email')
+        username = data.get('username')
+
+        if email:
+            is_exist = self.queryset.filter(email=email).exists()
+        elif username:
+            is_exist = self.queryset.filter(username=username).exists()
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        if is_exist:
+            return Response(status=status.HTTP_200_OK)
+
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class UserPasswordViewSet(mixins.CreateModelMixin,

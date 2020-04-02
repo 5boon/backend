@@ -33,7 +33,7 @@ check = UserCheckViewSet.as_view({
 
 urlpatterns = [
     url(r'^register/$', resister, name='user_register'),
-    url(r'^check/', check, name='user_check'),
+    url(r'^check/$', check, name='user_check'),
     url(r'^password/$', password, name='user_password'),
     url(r'^id/$', identification, name='user_id'),
 ]
