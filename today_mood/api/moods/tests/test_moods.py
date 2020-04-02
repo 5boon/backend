@@ -32,7 +32,7 @@ def test_today_mood_create(rf, client, mood_status, mock_is_authenticated):
 
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw'
     )
 
@@ -52,7 +52,7 @@ def test_today_mood_create(rf, client, mood_status, mock_is_authenticated):
 def test_no_today_mood_list(rf, client, mock_is_authenticated):
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw'
     )
 
@@ -70,7 +70,7 @@ def test_no_today_mood_list(rf, client, mock_is_authenticated):
 def test_today_mood_list(rf, client, mock_is_authenticated):
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw'
     )
 

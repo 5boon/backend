@@ -38,7 +38,7 @@ def test_user_register(rf, client, mock_update_employment_center_name):
     data = {
         'username': 'test',
         'password': '111111',
-        'nickname': 'test_nickname'
+        'name': 'name'
     }
 
     response = pytest_request(rf,
@@ -49,7 +49,7 @@ def test_user_register(rf, client, mock_update_employment_center_name):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data.get('username') == data.get('username')
-    assert response.data.get('nickname') == data.get('nickname')
+    assert response.data.get('name') == data.get('name')
 
 
 @pytest.mark.urls(urls='urls')
@@ -59,7 +59,7 @@ def test_user_password_find(rf, client, mock_send_pw_email):
 
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw',
         email='test@5boon.com'
     )
@@ -83,7 +83,7 @@ def test_user_password_find(rf, client, mock_send_pw_email):
 def test_user_password_update(rf, client, mock_is_authenticated):
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw',
         email='test@5boon.com'
     )
@@ -109,13 +109,13 @@ def test_user_id_find(rf, client, mock_send_pw_email):
 
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw',
         email='test@5boon.com'
     )
 
     data = {
-        'nickname': user.nickname,
+        'name': user.name,
         'email': user.email
     }
 
@@ -124,5 +124,30 @@ def test_user_id_find(rf, client, mock_send_pw_email):
                               url=url,
                               user=user,
                               data=data)
+
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+def test_user_email_check(rf, client, mock_send_pw_email):
+    url = reverse(viewname="users:user_id")
+
+    user = User.objects.create(
+        username='test_user',
+        name='test_name',
+        password='test_pw',
+        email='test@5boon.com'
+    )
+
+    get = {
+        'email': user.email
+    }
+
+    response = pytest_request(rf,
+                              method='post',
+                              url=url,
+                              user=user,
+                              get=get)
 
     assert response.status_code == status.HTTP_200_OK

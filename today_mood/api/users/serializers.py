@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'date_joined', 'nickname', 'username', 'email']
+        fields = ['id', 'date_joined', 'name', 'username', 'email']
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'nickname', 'password', 'email')
+        fields = ('username', 'name', 'password', 'email')
 
     def validate(self, data):
         try:
@@ -42,10 +42,10 @@ class PasswordFindSerializer(serializers.Serializer):
 
 class IDFindSerializer(serializers.Serializer):
     email = serializers.EmailField(allow_null=False, allow_blank=False, required=True)
-    nickname = serializers.CharField(max_length=50, required=True)
+    name = serializers.CharField(max_length=50, required=True)
 
     class Meta:
-        fields = ('email', 'nickname')
+        fields = ('email', 'name')
 
 
 class SnsOauthSerializer(serializers.BaseSerializer):

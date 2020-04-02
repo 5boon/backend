@@ -49,8 +49,8 @@ class UserRegisterViewSet(mixins.CreateModelMixin,
                 "author_name": instance.username,
                 "fields": [
                     {
-                        "title": "닉네임",
-                        "value": instance.nickname
+                        "title": "이름",
+                        "value": instance.name
                     }
                 ]
             }
@@ -58,6 +58,19 @@ class UserRegisterViewSet(mixins.CreateModelMixin,
 
         notify_slack(attachments, '#join-user')
         return instance
+
+
+class UserCheckViewSet(mixins.ListModelMixin,
+                       GenericViewSet):
+    """
+        User email, id 체크
+    """
+
+    queryset = User.objects.all()
+    permission_classes = (permissions.AllowAny, )
+
+    def list(self, request, *args, **kwargs):
+        return Response()
 
 
 class UserPasswordViewSet(mixins.CreateModelMixin,
@@ -131,7 +144,7 @@ class UserIDViewSet(mixins.CreateModelMixin,
             return Response()
 
         user = User.objects.filter(
-            nickname=serializer.validated_data.get('nickname'),
+            name=serializer.validated_data.get('name'),
             email=serializer.validated_data.get('email'),
         ).first()
 

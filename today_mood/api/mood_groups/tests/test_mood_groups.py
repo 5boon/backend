@@ -30,7 +30,7 @@ def test_group_create(rf, client, mock_is_authenticated):
 
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw'
     )
 
@@ -49,7 +49,7 @@ def test_group_create(rf, client, mock_is_authenticated):
 def test_my_group_list(rf, client, mock_is_authenticated):
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw'
     )
 
@@ -81,7 +81,7 @@ def test_my_group_list(rf, client, mock_is_authenticated):
 def test_my_group_list_detail(rf, client, mock_is_authenticated):
     user = User.objects.create(
         username='test_user',
-        nickname='test_nickname',
+        name='test_name',
         password='test_pw'
     )
 

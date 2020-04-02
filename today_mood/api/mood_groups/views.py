@@ -99,7 +99,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
             do_show_summary = mood_data.get('do_show_summary')
 
             data = {
-                'user': user.nickname,
+                'user': user.name,
                 'mood': {
                     'created': user_mood_data.get('created'),
                     'status': mood_data.get('status'),

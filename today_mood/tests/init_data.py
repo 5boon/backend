@@ -8,7 +8,7 @@ class InitTestData(object):
     def create_test_user(self):
         user_data = User.objects.create(
             username='test_user',
-            nickname='test_nickname',
+            name='test_name',
             password='test_pw'
         )
         return user_data
