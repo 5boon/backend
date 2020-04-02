@@ -3,7 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer, IDFindSerializer
+from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer, IDFindSerializer, \
+    SimpleUserSerializer
 from api.users.utils import send_pw_email, create_temp_pw
 from apps.users.models import User
 from utils.slack import notify_slack
@@ -67,6 +68,7 @@ class UserCheckViewSet(mixins.ListModelMixin,
     """
 
     queryset = User.objects.all()
+    serializer_class = SimpleUserSerializer
     permission_classes = (permissions.AllowAny, )
 
     def list(self, request, *args, **kwargs):
@@ -75,14 +77,15 @@ class UserCheckViewSet(mixins.ListModelMixin,
         username = data.get('username')
 
         if email:
-            is_exist = self.queryset.filter(email=email).exists()
+            user = self.queryset.filter(email=email).first()
         elif username:
-            is_exist = self.queryset.filter(username=username).exists()
+            user = self.queryset.filter(username=username).first()
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        if is_exist:
-            return Response(status=status.HTTP_200_OK)
+        if user:
+            serializer = self.get_serializer(instance=user)
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
 
         return Response(status=status.HTTP_404_NOT_FOUND)
 
