@@ -93,8 +93,10 @@ class MyGroupViewSet(mixins.ListModelMixin,
             # 가장 최근 기분을 가져옴
             user_mood = UserMood.objects.filter(
                 user=user,
-                created__date=today_date
+                created__date=today_date,
+                mood_group_id=search_group_id,
             ).last()
+
             user_mood_data = UserMoodSerializers(instance=user_mood).data
             mood_data = user_mood_data.get('mood')
             do_show_summary = mood_data.get('do_show_summary')
