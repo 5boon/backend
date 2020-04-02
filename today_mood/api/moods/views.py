@@ -6,9 +6,10 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from api.moods.serializers import MoodSerializer
+from apps.mood_groups.models import UserMoodGroup
 from apps.moods.models import Mood, UserMood
 
-MOOD_LIMITED_COUNT = 100
+MOOD_LIMITED_COUNT = 1000
 
 
 class MoodViewSet(mixins.CreateModelMixin,
@@ -23,9 +24,19 @@ class MoodViewSet(mixins.CreateModelMixin,
     serializer_class = MoodSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer, show_summary_group_list=[]):
+        """
+            - show_summary_group_list 가 empty list 이면 전체 공개
+
+        """
+
         today = timezone.now()
         user = self.request.user
+        is_show_alone = False # 그룹 공개 여부
+        mood_group_create_list = []
+
+        if mood_group_create_list:
+            is_show_alone = True
 
         user_mood_count = UserMood.objects.filter(
             user=user,
@@ -34,15 +45,37 @@ class MoodViewSet(mixins.CreateModelMixin,
 
         # 오늘 기분 생성
         if user_mood_count < MOOD_LIMITED_COUNT:
-            api_status = status.HTTP_201_CREATED
             mood = serializer.save()
 
+            # 그룹과 별개로, 개인 기분(mood) 생성
             UserMood.objects.create(
-                created=today,
-                modified=today,
-                user=self.request.user,
-                mood=mood
+                mood=mood,
+                user=self.request.user
             )
+
+            # 현재 속한 그룹 리스트 가져옴
+            mood_group_ids = UserMoodGroup.objects.filter(
+                user=user
+            ).values_list('mood_group_id', flat=True)
+
+            for mood_group_id in mood_group_ids:
+                do_show_summary = False
+
+                if not is_show_alone and mood_group_id in show_summary_group_list:
+                    do_show_summary = True
+
+                mood_group_create_list.append(
+                    UserMood(
+                        do_show_summary=do_show_summary,
+                        mood_group_id=mood_group_id,
+                        user=user,
+                        mood=mood
+                    )
+                )
+
+            if mood_group_create_list:
+                UserMood.objects.bulk_create(mood_group_create_list)
+
         else:
             err_data = {
                 'err_code': 'limited',
@@ -50,14 +83,16 @@ class MoodViewSet(mixins.CreateModelMixin,
             }
             return err_data, status.HTTP_400_BAD_REQUEST
 
-        return self.get_serializer(instance=mood).data, api_status
+        return self.get_serializer(instance=mood).data
 
     def create(self, request, *args, **kwargs):
+        show_summary_group_list = request.data.get('group_list')
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        mood, api_status = self.perform_create(serializer)
+        my_mode = self.perform_create(serializer, show_summary_group_list)
 
-        return Response(mood, status=api_status)
+        return Response(my_mode, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
         if request.GET.get('date'):
@@ -66,7 +101,7 @@ class MoodViewSet(mixins.CreateModelMixin,
             date = timezone.now().date()
 
         user = self.request.user
-        mood_list = Mood.objects.filter(
+        mood_list = self.get_queryset().filter(
             usermood__user=user,
             usermood__created__date=date
         )
