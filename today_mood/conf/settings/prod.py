@@ -97,7 +97,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 # OAUTH2_PROVIDER_APPLICATION_MODEL = 'users.User'
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'urls.domain'
 
 TEMPLATES = [
     {

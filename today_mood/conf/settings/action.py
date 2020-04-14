@@ -86,7 +86,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 #               Oauth2
 #########################################
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'urls.api_url'
 
 TEMPLATES = [
     {
