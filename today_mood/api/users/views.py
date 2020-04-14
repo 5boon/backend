@@ -158,7 +158,7 @@ class UserIDViewSet(mixins.CreateModelMixin,
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
-            return Response()
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.filter(
             name=serializer.validated_data.get('name'),
