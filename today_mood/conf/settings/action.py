@@ -154,6 +154,8 @@ LANGUAGE_CODE = 'ko-kr'
 #########################################
 #           슬랙 채널
 #########################################
+SLACK_CHANNEL_JOINED_USER = None
+SLACK_CHANNEL_CREATE_MOOD = None
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
