@@ -9,6 +9,7 @@ class SimpleUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'name', 'email']
 
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -18,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(min_length=6, max_length=20, write_only=True)
+    email = serializers.EmailField(required=True)
 
     class Meta:
         model = User
