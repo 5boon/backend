@@ -106,7 +106,7 @@ class UserPasswordViewSet(mixins.CreateModelMixin,
         pw_serializer = self.get_serializer(data=request.data)
 
         if not pw_serializer.is_valid():
-            return Response()
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.filter(
             username=pw_serializer.validated_data.get('username'),
