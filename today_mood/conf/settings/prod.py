@@ -4,7 +4,7 @@ import os
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-RELEASE_VERSION = '2020.4.1'
+RELEASE_VERSION = '2020.4.15'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -99,7 +99,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 # OAUTH2_PROVIDER_APPLICATION_MODEL = 'users.User'
 
-ROOT_URLCONF = 'urls'
+ROOT_URLCONF = 'urls.domain'
 
 TEMPLATES = [
     {
@@ -171,6 +171,7 @@ sentry_sdk.init(
 #           슬랙 채널
 #########################################
 SLACK_CHANNEL_JOINED_USER = 'slack_channel_joined_user_key'
+SLACK_CHANNEL_CREATE_MOOD = 'slack_channel_create_mood_key'
 
 
 #########################################
