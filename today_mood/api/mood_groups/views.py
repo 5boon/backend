@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import permissions, mixins, status
 from rest_framework.exceptions import PermissionDenied
@@ -10,6 +11,7 @@ from api.moods.serializers import UserMoodSerializers
 from apps.mood_groups.models import MoodGroup, UserMoodGroup, MoodGroupInvitation
 from apps.moods.models import UserMood
 from apps.users.models import User
+from utils.slack import notify_slack
 
 
 class GroupViewSet(mixins.CreateModelMixin,
@@ -43,6 +45,24 @@ class GroupViewSet(mixins.CreateModelMixin,
             mood_group=group,
             is_reader=True
         )
+
+        attachments = [
+            {
+                "color": "#9966FF",
+                "pretext": "아이엠 그룹트!\n'{}'님이 '그룹'을 생성했습니다!".format(request.user.name),
+                "fields": [
+                    {
+                        "title": "타이틀",
+                        "value": serializer.validated_data.get('title')
+                    },
+                    {
+                        "title": "설명",
+                        "value": serializer.validated_data.get('summary')
+                    }
+                ]
+            }
+        ]
+        notify_slack(attachments, settings.SLACK_CHANNEL_CREATE_MOOD)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

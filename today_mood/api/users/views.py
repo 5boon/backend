@@ -1,5 +1,5 @@
+from django.conf import settings
 from rest_framework import viewsets, permissions, mixins, status
-from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -57,7 +57,7 @@ class UserRegisterViewSet(mixins.CreateModelMixin,
             }
         ]
 
-        notify_slack(attachments, '#join-user')
+        notify_slack(attachments, settings.SLACK_CHANNEL_JOINED_USER)
         return instance
 
 
@@ -106,7 +106,7 @@ class UserPasswordViewSet(mixins.CreateModelMixin,
         pw_serializer = self.get_serializer(data=request.data)
 
         if not pw_serializer.is_valid():
-            return Response()
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.filter(
             username=pw_serializer.validated_data.get('username'),
@@ -158,7 +158,7 @@ class UserIDViewSet(mixins.CreateModelMixin,
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
-            return Response()
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.filter(
             name=serializer.validated_data.get('name'),
