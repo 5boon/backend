@@ -49,15 +49,18 @@ class GroupViewSet(mixins.CreateModelMixin,
         attachments = [
             {
                 "color": "#9966FF",
-                "pretext": "아이엠 그룹트!\n'{}'님이 '그룹'을 생성했습니다!".format(request.user.name),
+                "pretext": "아이엠 그룹트!\n`{}`님이 그룹을 생성했습니다!".format(request.user.name),
+                "title": "그룹 생성",
                 "fields": [
                     {
                         "title": "타이틀",
-                        "value": serializer.validated_data.get('title')
+                        "value": serializer.validated_data.get('title'),
+                        "short": True
                     },
                     {
                         "title": "설명",
-                        "value": serializer.validated_data.get('summary')
+                        "value": serializer.validated_data.get('summary'),
+                        "short": True
                     }
                 ]
             }

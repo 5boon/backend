@@ -46,12 +46,23 @@ class UserRegisterViewSet(mixins.CreateModelMixin,
         attachments = [
             {
                 "color": "#36a64f",
+                "title": "유저 가입",
                 "pretext": "새로운 유저가 가입했습니다.",
-                "author_name": instance.username,
                 "fields": [
                     {
+                        "title": "아이디",
+                        "value": instance.username,
+                        "short": True
+                    },
+                    {
                         "title": "이름",
-                        "value": instance.name
+                        "value": instance.name,
+                        "short": True
+                    },
+                    {
+                        "title": "이메일",
+                        "value": instance.email,
+                        "short": True
                     }
                 ]
             }

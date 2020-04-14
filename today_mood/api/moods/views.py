@@ -104,15 +104,18 @@ class MoodViewSet(mixins.CreateModelMixin,
         attachments = [
             {
                 "color": "#F0896A",
-                "pretext": "앙! 기분띠!\n'{}'님이 '기분'을 생성했습니다!".format(request.user.name),
+                "title": "기분 생성",
+                "pretext": "앙! 기분띠!\n`{}`님이 기분을 생성했습니다!".format(request.user.name),
                 "fields": [
                     {
                         "title": "상태",
-                        "value": MOOD_LIST[my_mode.get('status')]
+                        "value": MOOD_LIST[my_mode.get('status')],
+                        "short": True
                     },
                     {
-                        "title": "간단설명",
-                        "value": my_mode.get('simple_summary')
+                        "title": "간단 설명",
+                        "value": my_mode.get('simple_summary'),
+                        "short": True
                     }
                 ]
             }
