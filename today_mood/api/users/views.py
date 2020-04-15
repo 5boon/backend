@@ -205,6 +205,7 @@ class SNSLoginViewSet(mixins.CreateModelMixin,
         new_user = new_user_serializer.save()
         new_user.set_password(self.get_new_password(new_user.email))
         new_user.save(update_fields=['password'])
+        slack_notify_new_user(new_user, join_type=serializer.validated_data.get('type'))
 
         sns_data = SNSUserPasswordSerializer(instance=new_user).data
         return Response(data=sns_data, status=status.HTTP_201_CREATED)
