@@ -174,15 +174,14 @@ def test_sns_login(rf, client, user_context, social_type):
     url = reverse(viewname="users:user_sns")
     data = {
         'type': social_type,
-        'unique_id': 1234567,
-        'email': 'test@5boon.com',
+        'email': '5boon@5boon.com',
         'name': '5boon_user'
     }
 
     User.objects.create(
-        username='{}-{}'.format(data.get('type'), data.get('unique_id')),
+        username='{}-{}'.format(data.get('type'), data.get('email').split('@')[0]),
         name=data.get('name'),
-        password=data.get('unique_id'),
+        password="test_pw",
         email=data.get('email'),
     )
 

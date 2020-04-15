@@ -1,10 +1,12 @@
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 from rest_framework import viewsets, permissions, mixins, status
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer, IDFindSerializer, \
-    SimpleUserSerializer, SNSLoginSerializer
+    SimpleUserSerializer, SNSLoginSerializer, SNSUserPasswordSerializer
 from api.users.utils import send_pw_email, create_temp_pw
 from apps.users.models import User
 from utils.slack import notify_slack
@@ -203,29 +205,57 @@ class SNSLoginViewSet(mixins.CreateModelMixin,
         if not serializer.is_valid():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        username = "{}-{}".format(serializer.validated_data.get('type'), serializer.validated_data.get('unique_id'))
+        username = "{}-{}".format(
+            serializer.validated_data.get('type'),
+            serializer.validated_data.get('email').split('@')[0]
+        )
+
         user = User.objects.filter(
             username=username,
             email=serializer.validated_data.get('email'),
         ).first()
 
         if user:
-            data = {
-                'username': user.username,
-                'password': user.password
-            }
-            return Response(data=data, status=status.HTTP_200_OK)
+            sns_data = SNSUserPasswordSerializer(instance=user).data
+            return Response(data=sns_data, status=status.HTTP_200_OK)
 
-        user = User.objects.create(
-            username=username,
-            password=serializer.validated_data.get('unique_id'),
-            name=serializer.validated_data.get('name'),
-            email=serializer.validated_data.get('email'),
-        )
+        new_user_serializer = self.get_new_user_serializer(username, serializer.data)
+        if not new_user_serializer.is_valid():
+            return Response(
+                data=new_user_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        data = {
-            'username': user.username,
-            'password': user.password
+        # todo: 비밀번호를 make_password 로 해싱해서 만듭값을 저장하면 로그인이 안됨...값이 다르게 들어가나?
+        new_user = new_user_serializer.save()
+        new_user.set_password(self.get_new_password(new_user.email))
+        new_user.save(update_fields=['password'])
+
+        sns_data = SNSUserPasswordSerializer(instance=new_user).data
+        return Response(data=sns_data, status=status.HTTP_201_CREATED)
+
+    def get_new_user_serializer(self, username, data):
+        user_data = {
+            'username': username,
+            'email': data.get('email'),
+            'name': data.get('name'),
+            'password': settings.SNS_AUTH_USER_KEY,
         }
 
-        return Response(data=data, status=status.HTTP_201_CREATED)
+        user_serializer = UserRegisterSerializer(data=user_data)
+
+        return user_serializer
+
+    def get_new_password(self, email):
+        """
+            새로운 비밀번호 만들기
+        """
+        today = timezone.now()
+
+        new_password = '{}{}{}'.format(
+            email.split('@')[0],
+            settings.SNS_AUTH_USER_KEY,
+            today.strftime('%y%m%d')
+        )
+
+        return new_password

@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from apps.users.models import User
@@ -18,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(min_length=6, max_length=20, write_only=True)
+    password = serializers.CharField(min_length=6, write_only=True)
     email = serializers.EmailField(allow_blank=False, required=True)
 
     class Meta:
@@ -29,9 +30,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         try:
             user = User.objects.filter(username=data.get('username'))
             if len(user) > 0:
-                raise serializers.ValidationError(_("Username already exists"))
+                raise serializers.ValidationError("Username already exists")
         except User.DoesNotExist:
             pass
+
+        if User.objects.filter(email=data.get('email')).exists():
+            raise serializers.ValidationError("email already exists")
 
         return data
 
@@ -58,9 +62,29 @@ class IDFindSerializer(serializers.Serializer):
 
 class SNSLoginSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=['apple', 'kakao'], required=True)
-    unique_id = serializers.IntegerField(required=True)
     email = serializers.EmailField(allow_null=False, allow_blank=False, required=True)
     name = serializers.CharField(max_length=50, required=True)
 
     class Meta:
         fields = ['type', 'unique_id', 'email', 'name']
+
+
+class SNSUserPasswordSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'date_joined']
+
+    def to_representation(self, user):
+        new_password = '{}{}{}'.format(
+            user.email.split('@')[0],
+            settings.SNS_AUTH_USER_KEY,
+            user.date_joined.strftime('%y%m%d')
+        )
+
+        ret = {
+            'username': user.username,
+            'password': new_password
+        }
+
+        return ret
