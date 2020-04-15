@@ -155,24 +155,61 @@ def test_user_email_check(rf, client, mock_send_pw_email):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_user_username_check(rf, client, mock_send_pw_email):
-    url = reverse(viewname="users:user_check")
+@pytest.mark.parametrize(
+    'type',
+    ['kakao', 'apple']
+)
+def test_sns_first_login(rf, client, type):
+    """
+        data 는 클라이언트에서 소셜인증으로 받아온 데이터를 가져온다.
+        첫 로그인시 user 생성
+    """
 
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw',
-        email='test@5boon.com'
-    )
-
+    url = reverse(viewname="users:user_sns")
     data = {
-        'username': user.username
+        'type': type,
+        'unique_id': 1234567,
+        'email': 'test@5boon.com',
+        'name': '5boon_user'
     }
 
     response = pytest_request(rf,
-                              method='get',
+                              method='post',
                               url=url,
-                              user=user,
+                              data=data)
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'type',
+    ['kakao', 'apple']
+)
+def test_sns_login(rf, client, type):
+    """
+        data 는 클라이언트에서 소셜인증으로 받아온 데이터를 가져온다.
+    """
+
+    url = reverse(viewname="users:user_sns")
+    data = {
+        'type': type,
+        'unique_id': 1234567,
+        'email': 'test@5boon.com',
+        'name': '5boon_user'
+    }
+
+    User.objects.create(
+        username='{}-{}'.format(data.get('type'), data.get('unique_id')),
+        name=data.get('name'),
+        password=data.get('unique_id'),
+        email=data.get('email'),
+    )
+
+    response = pytest_request(rf,
+                              method='post',
+                              url=url,
                               data=data)
 
     assert response.status_code == status.HTTP_200_OK

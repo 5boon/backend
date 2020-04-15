@@ -5,7 +5,7 @@ from django.urls import resolve
 from rest_framework.test import force_authenticate
 
 
-def pytest_request(rf, method, url, user, data=None, token=None):
+def pytest_request(rf, method, url, user=None, data=None, token=None):
     """
         : Test 를 위한 request 생성하는 함수
         - rf 설명: https://pytest-django.readthedocs.io/en/latest/helpers.html#rf-requestfactory
