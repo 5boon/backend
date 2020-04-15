@@ -20,7 +20,7 @@ def mock_is_authenticated():
 
 @pytest.fixture(scope='function')
 def mock_update_employment_center_name():
-    with mock.patch('api.users.views.notify_slack') as patch:
+    with mock.patch('api.users.views.slack_notify_new_user') as patch:
         yield patch
 
 
@@ -38,7 +38,8 @@ def test_user_register(rf, client, mock_update_employment_center_name):
     data = {
         'username': 'test',
         'password': '111111',
-        'name': 'name'
+        'name': 'name',
+        'email': '5boon@gmail.com'
     }
 
     response = pytest_request(rf,
@@ -54,15 +55,10 @@ def test_user_register(rf, client, mock_update_employment_center_name):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_user_password_find(rf, client, mock_send_pw_email):
+def test_user_password_find(rf, client, user_context, mock_send_pw_email):
     url = reverse(viewname="users:user_password")
 
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw',
-        email='test@5boon.com'
-    )
+    user = user_context.init.create_user()
 
     data = {
         'username': user.username,
@@ -80,13 +76,8 @@ def test_user_password_find(rf, client, mock_send_pw_email):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_user_password_update(rf, client, mock_is_authenticated):
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw',
-        email='test@5boon.com'
-    )
+def test_user_password_update(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     data = {
         'new_password': 'new_pw'
@@ -104,16 +95,10 @@ def test_user_password_update(rf, client, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_user_id_find(rf, client, mock_send_pw_email):
+def test_user_id_find(rf, client, user_context, mock_send_pw_email):
     url = reverse(viewname="users:user_id")
 
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw',
-        email='test@5boon.com'
-    )
-
+    user = user_context.init.create_user()
     data = {
         'name': user.name,
         'email': user.email
@@ -130,16 +115,10 @@ def test_user_id_find(rf, client, mock_send_pw_email):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_user_email_check(rf, client, mock_send_pw_email):
+def test_user_email_check(rf, client, user_context, mock_send_pw_email):
     url = reverse(viewname="users:user_check")
 
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw',
-        email='test@5boon.com'
-    )
-
+    user = user_context.init.create_user()
     data = {
         'email': user.email
     }
@@ -155,24 +134,59 @@ def test_user_email_check(rf, client, mock_send_pw_email):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_user_username_check(rf, client, mock_send_pw_email):
-    url = reverse(viewname="users:user_check")
+@pytest.mark.parametrize(
+    'social_type',
+    ['kakao', 'apple']
+)
+def test_sns_first_login(rf, client, user_context, social_type):
+    """
+        data 는 클라이언트에서 소셜인증으로 받아온 데이터를 가져온다.
+        첫 로그인시 user 생성
+    """
 
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw',
-        email='test@5boon.com'
-    )
-
+    url = reverse(viewname="users:user_sns")
     data = {
-        'username': user.username
+        'type': social_type,
+        'email': 'test@5boon.com',
+        'name': '5boon_user'
     }
 
     response = pytest_request(rf,
-                              method='get',
+                              method='post',
                               url=url,
-                              user=user,
+                              data=data)
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'social_type',
+    ['kakao', 'apple']
+)
+def test_sns_login(rf, client, user_context, social_type):
+    """
+        data 는 클라이언트에서 소셜인증으로 받아온 데이터를 가져온다.
+    """
+
+    url = reverse(viewname="users:user_sns")
+    data = {
+        'type': social_type,
+        'email': '5boon@5boon.com',
+        'name': '5boon_user'
+    }
+
+    User.objects.create(
+        username='{}-{}'.format(data.get('type'), data.get('email').split('@')[0]),
+        name=data.get('name'),
+        password="test_pw",
+        email=data.get('email'),
+    )
+
+    response = pytest_request(rf,
+                              method='post',
+                              url=url,
                               data=data)
 
     assert response.status_code == status.HTTP_200_OK

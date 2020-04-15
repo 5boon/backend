@@ -25,13 +25,8 @@ def mock_is_authenticated():
     'mood_status',
     [0, 1, 2, 3, 4]
 )
-def test_today_mood_create(rf, client, mood_status, mock_is_authenticated):
-
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+def test_today_mood_create(rf, client, user_context, mood_status, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     mood_group = MoodGroup.objects.create(
         title='5boon',
@@ -63,12 +58,8 @@ def test_today_mood_create(rf, client, mood_status, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_no_today_mood_list(rf, client, mock_is_authenticated):
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+def test_no_today_mood_list(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     url = reverse(viewname="moods:today_mood")
     response = pytest_request(rf,
@@ -81,12 +72,8 @@ def test_no_today_mood_list(rf, client, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_today_mood_list(rf, client, mock_is_authenticated):
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+def test_today_mood_list(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     today = timezone.now()
 

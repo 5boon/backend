@@ -4,7 +4,7 @@ import os
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-RELEASE_VERSION = '2020.4.15'
+RELEASE_VERSION = '2020.4.16'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -184,6 +184,12 @@ EMAIL_HOST_PASSWORD = '5boon_email_pw'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+#########################################
+#           기타 등등
+#########################################
+SNS_AUTH_USER_KEY = 'sns_auth_user_key'
 
 
 #########################################
