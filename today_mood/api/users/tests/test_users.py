@@ -147,7 +147,6 @@ def test_sns_first_login(rf, client, user_context, social_type):
     url = reverse(viewname="users:user_sns")
     data = {
         'type': social_type,
-        'unique_id': 1234567,
         'email': 'test@5boon.com',
         'name': '5boon_user'
     }
