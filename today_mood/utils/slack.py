@@ -7,7 +7,7 @@ def slack_notify_new_user(user, join_type='5boon'):
     attachments = [
         {
             "color": "#36a64f",
-            "title": "유저 가입()".format(join_type),
+            "title": "유저 가입{}".format(join_type),
             "pretext": "새로운 유저가 가입했습니다.",
             "fields": [
                 {
