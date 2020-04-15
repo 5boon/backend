@@ -19,7 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(min_length=6, max_length=20, write_only=True)
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(allow_blank=False, required=True)
 
     class Meta:
         model = User
@@ -56,28 +56,11 @@ class IDFindSerializer(serializers.Serializer):
         fields = ('email', 'name')
 
 
-class SnsOauthSerializer(serializers.BaseSerializer):
-    token = serializers.CharField(min_length=1, max_length=100, required=True)
-    sns_type = serializers.ChoiceField(choices=['apple', 'kakao'], required=True)
+class SNSLoginSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['apple', 'kakao'], required=True)
+    unique_id = serializers.IntegerField(required=True)
+    email = serializers.EmailField(allow_null=False, allow_blank=False, required=True)
+    name = serializers.CharField(max_length=50, required=True)
 
     class Meta:
-        fields = ['token']
-
-    def to_internal_value(self, data):
-        token = data.get('token')
-        sns_type = data.get('sns_type')
-
-        if not token:
-            raise serializers.ValidationError({
-                'token': 'This field is required.'
-            })
-
-        if not sns_type:
-            raise serializers.ValidationError({
-                'sns_type': 'This field is required.'
-            })
-
-        return {
-            'token': token,
-            'sns_type': sns_type
-        }
+        fields = ['type', 'unique_id', 'email', 'name']

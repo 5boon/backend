@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer, IDFindSerializer, \
-    SimpleUserSerializer
+    SimpleUserSerializer, SNSLoginSerializer
 from api.users.utils import send_pw_email, create_temp_pw
 from apps.users.models import User
 from utils.slack import notify_slack
@@ -184,3 +184,48 @@ class UserIDViewSet(mixins.CreateModelMixin,
             return Response(data=data, status=status.HTTP_200_OK)
 
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class SNSLoginViewSet(mixins.CreateModelMixin,
+                      GenericViewSet):
+    """
+        소셜 로그인 /sns/
+        : 클라이언트에서 소셜인증으로 가져온 정보로 user 생
+    """
+
+    queryset = User.objects.all()
+    serializer_class = SNSLoginSerializer
+    permission_classes = (permissions.AllowAny, )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        username = "{}-{}".format(serializer.validated_data.get('type'), serializer.validated_data.get('unique_id'))
+        user = User.objects.filter(
+            username=username,
+            email=serializer.validated_data.get('email'),
+        ).first()
+
+        if user:
+            data = {
+                'username': user.username,
+                'password': user.password
+            }
+            return Response(data=data, status=status.HTTP_200_OK)
+
+        user = User.objects.create(
+            username=username,
+            password=serializer.validated_data.get('unique_id'),
+            name=serializer.validated_data.get('name'),
+            email=serializer.validated_data.get('email'),
+        )
+
+        data = {
+            'username': user.username,
+            'password': user.password
+        }
+
+        return Response(data=data, status=status.HTTP_201_CREATED)
