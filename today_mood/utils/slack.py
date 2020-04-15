@@ -2,12 +2,12 @@ from django.conf import settings
 from slackweb import slackweb
 
 
-def slack_notify_new_user(user):
+def slack_notify_new_user(user, join_type='5boon'):
     channel = settings.SLACK_CHANNEL_JOINED_USER
     attachments = [
         {
             "color": "#36a64f",
-            "title": "유저 가입",
+            "title": "유저 가입({})".format(join_type),
             "pretext": "새로운 유저가 가입했습니다.",
             "fields": [
                 {
