@@ -9,7 +9,7 @@ from api.users.serializers import UserSerializer, UserRegisterSerializer, Passwo
     SimpleUserSerializer, SNSLoginSerializer, SNSUserPasswordSerializer
 from api.users.utils import send_pw_email, create_temp_pw
 from apps.users.models import User
-from utils.slack import notify_slack
+from utils.slack import slack_notify_new_user
 
 
 class UserInformationViewSet(viewsets.ModelViewSet):
@@ -45,32 +45,7 @@ class UserRegisterViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         instance = serializer.save()
 
-        attachments = [
-            {
-                "color": "#36a64f",
-                "title": "유저 가입",
-                "pretext": "새로운 유저가 가입했습니다.",
-                "fields": [
-                    {
-                        "title": "아이디",
-                        "value": instance.username,
-                        "short": True
-                    },
-                    {
-                        "title": "이름",
-                        "value": instance.name,
-                        "short": True
-                    },
-                    {
-                        "title": "이메일",
-                        "value": instance.email,
-                        "short": True
-                    }
-                ]
-            }
-        ]
-
-        notify_slack(attachments, settings.SLACK_CHANNEL_JOINED_USER)
+        slack_notify_new_user(instance)
         return instance
 
 

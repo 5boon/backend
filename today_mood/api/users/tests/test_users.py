@@ -20,7 +20,7 @@ def mock_is_authenticated():
 
 @pytest.fixture(scope='function')
 def mock_update_employment_center_name():
-    with mock.patch('api.users.views.notify_slack') as patch:
+    with mock.patch('api.users.views.slack_notify_new_user') as patch:
         yield patch
 
 

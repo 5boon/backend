@@ -1,6 +1,5 @@
 from datetime import datetime
 
-from django.conf import settings
 from django.utils import timezone
 from rest_framework import permissions, mixins, status, exceptions
 from rest_framework.response import Response
@@ -9,7 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 from api.moods.serializers import MoodSerializer
 from apps.mood_groups.models import UserMoodGroup
 from apps.moods.models import Mood, UserMood
-from utils.slack import notify_slack
+from utils.slack import slack_notify_new_mood
 
 MOOD_LIMITED_COUNT = 1000
 MOOD_LIST = [
@@ -101,26 +100,11 @@ class MoodViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         my_mode = self.perform_create(serializer, show_summary_group_list)
 
-        attachments = [
-            {
-                "color": "#F0896A",
-                "title": "기분 생성",
-                "pretext": "앙! 기분띠!\n`{}`님이 기분을 생성했습니다!".format(request.user.name),
-                "fields": [
-                    {
-                        "title": "상태",
-                        "value": MOOD_LIST[my_mode.get('status')],
-                        "short": True
-                    },
-                    {
-                        "title": "간단 설명",
-                        "value": my_mode.get('simple_summary'),
-                        "short": True
-                    }
-                ]
-            }
-        ]
-        notify_slack(attachments, settings.SLACK_CHANNEL_CREATE_MOOD)
+        slack_notify_new_mood(
+            MOOD_LIST[my_mode.get('status')],
+            request.user.name,
+            my_mode.get('simple_summary')
+        )
 
         return Response(my_mode, status=status.HTTP_201_CREATED)
 
