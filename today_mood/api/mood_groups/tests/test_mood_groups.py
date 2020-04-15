@@ -21,18 +21,14 @@ def mock_is_authenticated():
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_group_create(rf, client, mock_is_authenticated):
+def test_group_create(rf, client, user_context, mock_is_authenticated):
 
     data = {
         'title': '5boon',
         'summary': '5boon 팀원들과의 기분 공유'
     }
 
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+    user = user_context.init.create_user()
 
     url = reverse(viewname="mood_groups:group-list")
     response = pytest_request(rf,
@@ -46,12 +42,8 @@ def test_group_create(rf, client, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_my_group_list(rf, client, mock_is_authenticated):
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+def test_my_group_list(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     today = timezone.now()
     mood_group = MoodGroup.objects.create(
@@ -78,12 +70,8 @@ def test_my_group_list(rf, client, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_my_group_list_detail(rf, client, mock_is_authenticated):
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+def test_my_group_list_detail(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     guest = User.objects.create(
         username='test_guest',
@@ -112,7 +100,6 @@ def test_my_group_list_detail(rf, client, mock_is_authenticated):
         user=guest,
         mood=guest_mood
     )
-
 
     # 그룹 생성
     mood_group = MoodGroup.objects.create(
@@ -152,12 +139,8 @@ def test_my_group_list_detail(rf, client, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_invitation_list(rf, client, mock_is_authenticated):
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+def test_invitation_list(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     guest = User.objects.create(
         username='test_guest',
@@ -193,12 +176,8 @@ def test_invitation_list(rf, client, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_invitation_create(rf, client, mock_is_authenticated):
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+def test_invitation_create(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     guest = User.objects.create(
         username='test_guest',
@@ -233,12 +212,8 @@ def test_invitation_create(rf, client, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_invitation_approve(rf, client, mock_is_authenticated):
-    user = User.objects.create(
-        username='test_user',
-        name='test_name',
-        password='test_pw'
-    )
+def test_invitation_approve(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
 
     guest = User.objects.create(
         username='test_guest',

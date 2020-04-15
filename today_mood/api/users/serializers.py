@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from apps.users.models import User
@@ -9,6 +10,7 @@ class SimpleUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'name', 'email']
 
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -17,7 +19,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(min_length=6, max_length=20, write_only=True)
+    password = serializers.CharField(min_length=6, write_only=True)
+    email = serializers.EmailField(allow_blank=False, required=True)
 
     class Meta:
         model = User
@@ -27,9 +30,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         try:
             user = User.objects.filter(username=data.get('username'))
             if len(user) > 0:
-                raise serializers.ValidationError(_("Username already exists"))
+                raise serializers.ValidationError("Username already exists")
         except User.DoesNotExist:
             pass
+
+        if User.objects.filter(email=data.get('email')).exists():
+            raise serializers.ValidationError("email already exists")
 
         return data
 
@@ -54,28 +60,31 @@ class IDFindSerializer(serializers.Serializer):
         fields = ('email', 'name')
 
 
-class SnsOauthSerializer(serializers.BaseSerializer):
-    token = serializers.CharField(min_length=1, max_length=100, required=True)
-    sns_type = serializers.ChoiceField(choices=['apple', 'kakao'], required=True)
+class SNSLoginSerializer(serializers.Serializer):
+    type = serializers.ChoiceField(choices=['apple', 'kakao'], required=True)
+    email = serializers.EmailField(allow_null=False, allow_blank=False, required=True)
+    name = serializers.CharField(max_length=50, required=True)
 
     class Meta:
-        fields = ['token']
+        fields = ['type', 'unique_id', 'email', 'name']
 
-    def to_internal_value(self, data):
-        token = data.get('token')
-        sns_type = data.get('sns_type')
 
-        if not token:
-            raise serializers.ValidationError({
-                'token': 'This field is required.'
-            })
+class SNSUserPasswordSerializer(serializers.ModelSerializer):
 
-        if not sns_type:
-            raise serializers.ValidationError({
-                'sns_type': 'This field is required.'
-            })
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'date_joined']
 
-        return {
-            'token': token,
-            'sns_type': sns_type
+    def to_representation(self, user):
+        new_password = '{}{}{}'.format(
+            user.email.split('@')[0],
+            settings.SNS_AUTH_USER_KEY,
+            user.date_joined.strftime('%y%m%d')
+        )
+
+        ret = {
+            'username': user.username,
+            'password': new_password
         }
+
+        return ret

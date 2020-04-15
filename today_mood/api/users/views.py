@@ -1,13 +1,15 @@
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
+from django.utils import timezone
 from rest_framework import viewsets, permissions, mixins, status
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from api.users.serializers import UserSerializer, UserRegisterSerializer, PasswordFindSerializer, IDFindSerializer, \
-    SimpleUserSerializer
+    SimpleUserSerializer, SNSLoginSerializer, SNSUserPasswordSerializer
 from api.users.utils import send_pw_email, create_temp_pw
 from apps.users.models import User
-from utils.slack import notify_slack
+from utils.slack import slack_notify_new_user
 
 
 class UserInformationViewSet(viewsets.ModelViewSet):
@@ -43,21 +45,7 @@ class UserRegisterViewSet(mixins.CreateModelMixin,
     def perform_create(self, serializer):
         instance = serializer.save()
 
-        attachments = [
-            {
-                "color": "#36a64f",
-                "pretext": "새로운 유저가 가입했습니다.",
-                "author_name": instance.username,
-                "fields": [
-                    {
-                        "title": "이름",
-                        "value": instance.name
-                    }
-                ]
-            }
-        ]
-
-        notify_slack(attachments, settings.SLACK_CHANNEL_JOINED_USER)
+        slack_notify_new_user(instance)
         return instance
 
 
@@ -173,3 +161,76 @@ class UserIDViewSet(mixins.CreateModelMixin,
             return Response(data=data, status=status.HTTP_200_OK)
 
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class SNSLoginViewSet(mixins.CreateModelMixin,
+                      GenericViewSet):
+    """
+        소셜 로그인 /sns/
+        : 클라이언트에서 소셜인증으로 가져온 정보로 user 생
+    """
+
+    queryset = User.objects.all()
+    serializer_class = SNSLoginSerializer
+    permission_classes = (permissions.AllowAny, )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        username = "{}-{}".format(
+            serializer.validated_data.get('type'),
+            serializer.validated_data.get('email').split('@')[0]
+        )
+
+        user = User.objects.filter(
+            username=username,
+            email=serializer.validated_data.get('email'),
+        ).first()
+
+        if user:
+            sns_data = SNSUserPasswordSerializer(instance=user).data
+            return Response(data=sns_data, status=status.HTTP_200_OK)
+
+        new_user_serializer = self.get_new_user_serializer(username, serializer.data)
+        if not new_user_serializer.is_valid():
+            return Response(
+                data=new_user_serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # todo: 비밀번호를 make_password 로 해싱해서 만듭값을 저장하면 로그인이 안됨...값이 다르게 들어가나?
+        new_user = new_user_serializer.save()
+        new_user.set_password(self.get_new_password(new_user.email))
+        new_user.save(update_fields=['password'])
+
+        sns_data = SNSUserPasswordSerializer(instance=new_user).data
+        return Response(data=sns_data, status=status.HTTP_201_CREATED)
+
+    def get_new_user_serializer(self, username, data):
+        user_data = {
+            'username': username,
+            'email': data.get('email'),
+            'name': data.get('name'),
+            'password': settings.SNS_AUTH_USER_KEY,
+        }
+
+        user_serializer = UserRegisterSerializer(data=user_data)
+
+        return user_serializer
+
+    def get_new_password(self, email):
+        """
+            새로운 비밀번호 만들기
+        """
+        today = timezone.now()
+
+        new_password = '{}{}{}'.format(
+            email.split('@')[0],
+            settings.SNS_AUTH_USER_KEY,
+            today.strftime('%y%m%d')
+        )
+
+        return new_password
