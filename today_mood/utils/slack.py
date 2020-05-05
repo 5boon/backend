@@ -1,8 +1,10 @@
 from django.conf import settings
 from slackweb import slackweb
 
+from apps.users.models import User
 
-def slack_notify_new_user(user, join_type='5boon'):
+
+def slack_notify_new_user(user: User, join_type: str = '5boon'):
     channel = settings.SLACK_CHANNEL_JOINED_USER
     attachments = [
         {
@@ -34,7 +36,7 @@ def slack_notify_new_user(user, join_type='5boon'):
         slack.notify(attachments=attachments)
 
 
-def slack_notify_new_group(user_name, data):
+def slack_notify_new_group(user_name: str, data: dict):
     channel = settings.SLACK_CHANNEL_CREATE_MOOD
     attachments = [
         {
@@ -61,7 +63,7 @@ def slack_notify_new_group(user_name, data):
         slack.notify(attachments=attachments)
 
 
-def slack_notify_new_mood(status, user_name, simple_summary):
+def slack_notify_new_mood(status: str, user_name: str, simple_summary: str):
     channel = settings.SLACK_CHANNEL_CREATE_MOOD
 
     attachments = [
