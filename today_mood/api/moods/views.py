@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from django.utils import timezone
-from rest_framework import permissions, mixins, status, exceptions
+from rest_framework import permissions, mixins, status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -32,44 +33,45 @@ class MoodViewSet(mixins.CreateModelMixin,
     serializer_class = MoodSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def perform_create(self, serializer, show_summary_group_list=[]):
+    def perform_create(self, serializer):
         """
             - show_summary_group_list 가 empty list 이면 전체 공개
-
         """
 
         today = timezone.now()
         user = self.request.user
-        is_show_alone = False # 그룹 공개 여부
         mood_group_create_list = []
-
-        if mood_group_create_list:
-            is_show_alone = True
+        show_summary_group_list = self.request.data.get('group_list', [])  # 기분 설명(summary) 보여줄 그룹
 
         user_mood_count = UserMood.objects.filter(
             user=user,
-            created__date=today.date()
+            created__date=today.date(),
+            mood_group=None
         ).count()
 
         # 오늘 기분 생성
         if user_mood_count < MOOD_LIMITED_COUNT:
+            # 현재 속한 그룹 리스트 가져옴
+            mood_group_ids = list(UserMoodGroup.objects.filter(
+                user=user
+            ).values_list('mood_group_id', flat=True))
+
+            if not self.is_my_group(show_summary_group_list, mood_group_ids):
+                raise PermissionDenied
+
             mood = serializer.save()
 
-            # 그룹과 별개로, 개인 기분(mood) 생성
+            # 그룹과 별개로, 개인 기분(mood) 생성 - 그룹이 없을수도 있어서, mood_group=None 을 기본으로 생성
             UserMood.objects.create(
                 mood=mood,
-                user=self.request.user
+                user=self.request.user,
+                mood_group=None
             )
-
-            # 현재 속한 그룹 리스트 가져옴
-            mood_group_ids = UserMoodGroup.objects.filter(
-                user=user
-            ).values_list('mood_group_id', flat=True)
 
             for mood_group_id in mood_group_ids:
                 do_show_summary = False
 
-                if not is_show_alone and mood_group_id in show_summary_group_list:
+                if mood_group_id in show_summary_group_list:
                     do_show_summary = True
 
                 mood_group_create_list.append(
@@ -94,11 +96,9 @@ class MoodViewSet(mixins.CreateModelMixin,
         return self.get_serializer(instance=mood).data
 
     def create(self, request, *args, **kwargs):
-        show_summary_group_list = request.data.get('group_list', [])
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        my_mode = self.perform_create(serializer, show_summary_group_list)
+        my_mode = self.perform_create(serializer)
 
         slack_notify_new_mood(
             MOOD_LIST[my_mode.get('status')],
@@ -116,13 +116,22 @@ class MoodViewSet(mixins.CreateModelMixin,
 
         user = self.request.user
         mood_list = self.get_queryset().filter(
+            usermood__created__date=date,
             usermood__user=user,
-            usermood__created__date=date
+            usermood__mood_group=None
         )
 
         if not mood_list:
-            raise exceptions.NotFound
+            Response(status=status.HTTP_200_OK)
 
         mood = self.get_serializer(mood_list, many=True).data
+        return Response(mood, status=status.HTTP_200_OK)
 
-        return Response(mood)
+    @staticmethod
+    def is_my_group(groups: list, my_groups: list) -> bool:
+        other_group = set(groups) - set(my_groups)
+
+        if other_group:
+            return False
+        else:
+            return True
