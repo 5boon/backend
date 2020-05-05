@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from rest_framework import viewsets, permissions, mixins, status
 from rest_framework.response import Response
@@ -210,7 +209,8 @@ class SNSLoginViewSet(mixins.CreateModelMixin,
         sns_data = SNSUserPasswordSerializer(instance=new_user).data
         return Response(data=sns_data, status=status.HTTP_201_CREATED)
 
-    def get_new_user_serializer(self, username, data):
+    @staticmethod
+    def get_new_user_serializer(username: str, data: dict) -> UserRegisterSerializer:
         user_data = {
             'username': username,
             'email': data.get('email'),
@@ -222,7 +222,8 @@ class SNSLoginViewSet(mixins.CreateModelMixin,
 
         return user_serializer
 
-    def get_new_password(self, email):
+    @staticmethod
+    def get_new_password(email: str) -> str:
         """
             새로운 비밀번호 만들기
         """
