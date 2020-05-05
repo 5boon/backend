@@ -42,7 +42,7 @@ def test_today_mood_create(rf, client, user_context, mood_status, mock_is_authen
     data = {
         "status": mood_status,
         "simple_summary": "테스트 기분",
-        "group_list": [group.id]
+        "group_list": [mood_group.id]
     }
 
     url = reverse(viewname="moods:today_mood")
@@ -67,7 +67,8 @@ def test_no_today_mood_list(rf, client, user_context, mock_is_authenticated):
                               url=url,
                               user=user)
 
-    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == []
 
 
 @pytest.mark.urls(urls='urls')

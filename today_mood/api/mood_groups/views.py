@@ -1,5 +1,5 @@
 from django.utils import timezone
-from rest_framework import permissions, mixins, status
+from rest_framework import permissions, mixins, status, exceptions
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
@@ -71,8 +71,11 @@ class MyGroupViewSet(mixins.ListModelMixin,
         # 그룹에 속한 사람들 리스트
         user_mood_group = self.get_object()
 
-        if user_mood_group.user != request.user:
-            raise PermissionDenied
+        try:
+            if user_mood_group.user != request.user:
+                raise PermissionDenied
+        except User.DoesNotExist:
+            raise exceptions.NotFound
 
         search_group_id = user_mood_group.mood_group.id
         today_date = timezone.now().date()
