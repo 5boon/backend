@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from rest_framework import serializers
 
@@ -25,6 +27,13 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'name', 'password', 'email')
+
+    def validate_username(self, username):
+        code_regex = re.compile('[a-zA-Z|0-9|\-_]')  # 영어 + 숫자 + -,_
+        if code_regex.sub('', username):
+            raise serializers.ValidationError('유효하지 않은 정규식입니다.', 'regex_error')
+
+        return username
 
     def validate(self, data):
         try:
