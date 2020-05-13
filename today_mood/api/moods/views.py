@@ -12,13 +12,14 @@ from apps.moods.models import Mood, UserMood
 from utils.slack import slack_notify_new_mood
 
 MOOD_LIMITED_COUNT = 1000
-MOOD_LIST = [
-    'soso',
-    'good',
-    'best',
-    'bad',
-    'worst'
-]
+MOOD_DICT = {
+    Mood.SOSO: 'soso',
+    Mood.GOOD: 'good',
+    Mood.BEST: 'best',
+    Mood.BAD: 'bad',
+    Mood.MOPE: 'mope',
+    Mood.WORST: 'worst'
+}
 
 
 class MoodViewSet(mixins.CreateModelMixin,
@@ -101,7 +102,7 @@ class MoodViewSet(mixins.CreateModelMixin,
         my_mode = self.perform_create(serializer)
 
         slack_notify_new_mood(
-            MOOD_LIST[my_mode.get('status')],
+            MOOD_DICT[my_mode.get('status')],
             request.user.name,
             my_mode.get('simple_summary')
         )
