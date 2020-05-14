@@ -13,12 +13,12 @@ from utils.slack import slack_notify_new_mood
 
 MOOD_LIMITED_COUNT = 1000
 MOOD_DICT = {
+    Mood.WORST: 'worst',
+    Mood.BAD: 'bad',
+    Mood.MOPE: 'mope',
     Mood.SOSO: 'soso',
     Mood.GOOD: 'good',
     Mood.BEST: 'best',
-    Mood.BAD: 'bad',
-    Mood.MOPE: 'mope',
-    Mood.WORST: 'worst'
 }
 
 

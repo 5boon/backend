@@ -8,12 +8,12 @@ from apps.users.models import User
 class Mood(models.Model):
     SOSO, GOOD, BEST, BAD, MOPE, WORST = 0, 5, 10, 15, 20, 25
     STATUS_CHOICES = (
+        (WORST, 'worst'),  # 최악이에요
+        (BAD, 'bad'),  # 나빠요
+        (MOPE, 'mope'),  # 우울해요
         (SOSO, 'soso'),  # 그냥 그래요
         (GOOD, 'good'),  # 좋아요
         (BEST, 'best'),  # 최고에요
-        (BAD, 'bad'),  # 나빠요
-        (MOPE, 'mope'),  # 우울해요
-        (WORST, 'worst'),  # 최악이에요
     )
 
     status = models.SmallIntegerField('status', choices=STATUS_CHOICES, blank=False)  # 상태
