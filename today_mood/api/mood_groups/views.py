@@ -70,6 +70,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
     def retrieve(self, request, *args, **kwargs):
         # 그룹에 속한 사람들 리스트
         user_mood_group = self.get_object()
+        display_mine = request.GET.get('display_mine', None)  # 본인 기분 표시 여부
 
         try:
             if user_mood_group.user != request.user:
@@ -86,8 +87,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
 
         user_mood_list = []
         for user_id in user_id_list:
-            # 본인 기분은 제외
-            if user_id == request.user.id:
+            if display_mine is None and user_id == request.user.id:
                 continue
 
             try:
