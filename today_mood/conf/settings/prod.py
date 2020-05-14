@@ -6,8 +6,8 @@ from sentry_sdk.integrations.django import DjangoIntegration
 
 RELEASE_VERSION = '2020.5.5'
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DJANGO_ROOT = BASE_DIR
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '5boon_secret_key'
@@ -25,9 +25,9 @@ AUTH_USER_MODEL = "users.user"
 JET_SIDE_MENU_COMPACT = True
 JET_THEMES = [
     {
-        'theme': 'default', # theme folder name
-        'color': '#47bac1', # color of the theme's button in user menu
-        'title': 'Default' # theme title
+        'theme': '#F08B68', # theme folder name
+        'color': '#F08B68', # color of the theme's button in user menu
+        'title': '#F08B68' # theme title
     },
     {
         'theme': 'green',
@@ -142,7 +142,9 @@ ROOT_URLCONF = 'urls.domain'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, '../../../templates')],
+        'DIRS': [
+            os.path.normpath(os.path.join(DJANGO_ROOT, 'templates')),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -243,3 +245,6 @@ LANGUAGE_CODE = 'ko-kr'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/home/deploy/sites/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
