@@ -25,6 +25,9 @@ AUTH_USER_MODEL = "users.user"
 #     Application definition
 #########################################
 INSTALLED_APPS = [
+    'jet',
+    'jet.dashboard',  # dashboard 기능을 사용하려면 다음을 추가
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
