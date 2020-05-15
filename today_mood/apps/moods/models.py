@@ -6,7 +6,7 @@ from apps.users.models import User
 
 
 class Mood(models.Model):
-    SOSO, GOOD, BEST, BAD, MOPE, WORST = 0, 5, 10, 15, 20, 25
+    WORST, BAD, MOPE, SOSO, GOOD, BEST = 0, 5, 10, 15, 20, 25
     STATUS_CHOICES = (
         (WORST, 'worst'),  # 최악이에요
         (BAD, 'bad'),  # 나빠요
@@ -18,6 +18,7 @@ class Mood(models.Model):
 
     status = models.SmallIntegerField('status', choices=STATUS_CHOICES, blank=False)  # 상태
     simple_summary = models.CharField(max_length=200, blank=True)  # 한줄 요약
+    is_day_last = models.BooleanField(default=False)  # 하루의 가장 마지막 기분인지
 
     class Meta:
         verbose_name = 'mood'
@@ -36,3 +37,7 @@ class UserMood(models.Model):
 
     def __str__(self):
         return '{}-{}-{}'.format(self.user.username, self.created, self.mood.status)
+
+
+# TODO: apps에 MoodConfg의 ready 함수에서 signal import 인식이 안됨;; 임시로 models에서 import 하도록 함
+import apps.moods.signals
