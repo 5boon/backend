@@ -49,7 +49,7 @@ def create_sample_month_mood(user_id: int, year: int = 2020, month: int = 1):
 
 def create_sample_year_mood(user_id: int, year: int = 2020, start_month: int = 1, end_month: int = 12):
     for month in range(start_month, end_month + 1):
-        create_sample_month_mood(year, month, user_id)
+        create_sample_month_mood(user_id, year, month)
 
 
 def run():
