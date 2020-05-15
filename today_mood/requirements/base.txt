@@ -49,3 +49,4 @@ urllib3==1.25.8
 zipp==3.0.0
 sentry-sdk==0.14.2
 django-3-jet==1.0.8
+django-extensions==2.2.9
