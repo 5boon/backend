@@ -236,7 +236,7 @@ class MonthMoodViewSet(mixins.CreateModelMixin,
         month_mood_list = [-1 for _ in range(0, month_range)]
 
         for user_mood in user_mood_qs:
-            month_mood_list[user_mood.created.day] = user_mood.mood.status
+            month_mood_list[user_mood.created.day-1] = user_mood.mood.status
 
         return month_range, month_mood_list
 
@@ -253,6 +253,7 @@ class YearMoodViewSet(MonthMoodViewSet):
     def list(self, request, *args, **kwargs):
         user = self.request.user
         year = int(kwargs.get('year'))
+        data = {}
 
         user_mood_qs = self.get_queryset().filter(
             created__year=year,
@@ -261,7 +262,6 @@ class YearMoodViewSet(MonthMoodViewSet):
             mood__is_day_last=True
         ).prefetch_related('mood')
 
-        data = {}
         for month in range(1, 13):
             month_qs = user_mood_qs.filter(created__month=month)
             month_range, mood_list = self.get_month_mood(month_qs, year, month)
