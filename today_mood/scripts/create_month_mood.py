@@ -50,6 +50,7 @@ def create_sample_month_mood(user_id: int, year: int = 2020, month: int = 1):
 def create_sample_year_mood(user_id: int, year: int = 2020, start_month: int = 1, end_month: int = 12):
     for month in range(start_month, end_month + 1):
         create_sample_month_mood(user_id, year, month)
+        print('[------ {}월 샘플 기분 생성 완료 ------]'.format(month))
 
 
 def run():
