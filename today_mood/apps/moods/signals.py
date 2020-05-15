@@ -13,5 +13,6 @@ def save_mood(sender, instance, created, **kwargs):
             is_day_last=True
         ).update(is_day_last=False)
 
+        # 오늘 하루 마지막 기분으로 업데이트
         instance.mood.is_day_last = True
         instance.mood.save(update_fields=['is_day_last'])

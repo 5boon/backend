@@ -1,4 +1,5 @@
-from datetime import datetime
+from calendar import monthrange
+from datetime import datetime, timedelta
 
 from django.utils import timezone
 from rest_framework import permissions, mixins, status
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from api.moods.serializers import MoodSerializer
+from api.pagination import CustomCursorPagination
 from apps.mood_groups.models import UserMoodGroup
 from apps.moods.models import Mood, UserMood
 from utils.slack import slack_notify_new_mood
@@ -33,6 +35,7 @@ class MoodViewSet(mixins.CreateModelMixin,
     queryset = Mood.objects.all()
     serializer_class = MoodSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    pagination_class = CustomCursorPagination
 
     def perform_create(self, serializer):
         """
@@ -110,23 +113,27 @@ class MoodViewSet(mixins.CreateModelMixin,
         return Response(my_mode, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
+        self.pagination_class.cursor = self.request.query_params.get('cursor')
+
         if request.GET.get('date'):
             date = datetime.strptime(request.GET.get('date'), '%Y-%m-%d').date()
         else:
             date = timezone.now().date()
 
         user = self.request.user
-        mood_list = self.get_queryset().filter(
+        mood_qs = self.get_queryset().filter(
             usermood__created__date=date,
             usermood__user=user,
             usermood__mood_group=None
         )
 
-        if not mood_list:
+        if not mood_qs:
             Response(status=status.HTTP_200_OK)
 
-        mood = self.get_serializer(mood_list, many=True).data
-        return Response(mood, status=status.HTTP_200_OK)
+        page = self.paginate_queryset(mood_qs)
+        serializer = self.get_serializer(page, many=True)
+
+        return self.get_paginated_response(serializer.data)
 
     @staticmethod
     def is_my_group(groups: list, my_groups: list) -> bool:
@@ -136,3 +143,131 @@ class MoodViewSet(mixins.CreateModelMixin,
             return False
         else:
             return True
+
+
+class WeekMoodViewSet(mixins.CreateModelMixin,
+                      mixins.ListModelMixin,
+                      GenericViewSet):
+    """
+        - 최근 7일 Mood (기분)
+          endpoint : /moods/week/
+    """
+
+    queryset = UserMood.objects.all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.user
+        today = timezone.now() + timedelta(days=1)
+        week_ago = today - timedelta(days=7)
+
+        user_mood_qs = self.get_queryset().filter(
+            created__range=[week_ago.date(), today.date()],
+            user=user,
+            mood_group=None,
+            mood__is_day_last=True
+        ).prefetch_related('mood')
+
+        mood_list = self.get_week_mood(user_mood_qs, week_ago.day)
+        data = {
+            'mood_list': mood_list
+        }
+
+        return Response(data=data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_week_mood(user_mood_qs, day):
+        week_mood_list = []
+        user_mood_list = list(user_mood_qs)
+
+        for _ in range(0, 7):
+            matched_day = False
+
+            for idx, user_mood in enumerate(user_mood_list):
+                if day == user_mood.created.day:
+                    week_mood_list.append(user_mood.mood.status)
+                    user_mood_list.pop(idx)
+                    matched_day = True
+                    break
+
+            if matched_day is False:
+                week_mood_list.append(-1)
+
+            day += 1
+
+        return week_mood_list
+
+
+class MonthMoodViewSet(mixins.CreateModelMixin,
+                       mixins.ListModelMixin,
+                       GenericViewSet):
+    """
+        - 1개월 Mood (기분)
+          endpoint : /moods/<year>/<month>/
+    """
+
+    queryset = UserMood.objects.all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.user
+        year = int(kwargs.get('year'))
+        month = int(kwargs.get('month'))
+
+        user_mood_qs = self.get_queryset().filter(
+            created__year=year,
+            created__month=month,
+            user=user,
+            mood_group=None,
+            mood__is_day_last=True
+        ).prefetch_related('mood')
+
+        month_range, mood_list = self.get_month_mood(user_mood_qs, year, month)
+        data = {
+            'month_range': month_range,
+            'mood_list': mood_list
+        }
+
+        return Response(data=data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_month_mood(user_mood_qs, year, month):
+        month_range = monthrange(year, month)[1]
+        month_mood_list = [-1 for _ in range(0, month_range)]
+
+        for user_mood in user_mood_qs:
+            month_mood_list[user_mood.created.day] = user_mood.mood.status
+
+        return month_range, month_mood_list
+
+
+class YearMoodViewSet(MonthMoodViewSet):
+    """
+        - 1년 Mood (기분)
+          endpoint : /moods/<year>/
+    """
+
+    queryset = UserMood.objects.all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.user
+        year = int(kwargs.get('year'))
+
+        user_mood_qs = self.get_queryset().filter(
+            created__year=year,
+            user=user,
+            mood_group=None,
+            mood__is_day_last=True
+        ).prefetch_related('mood')
+
+        data = {}
+        for month in range(1, 13):
+            month_qs = user_mood_qs.filter(created__month=month)
+            month_range, mood_list = self.get_month_mood(month_qs, year, month)
+            data[month] = {
+                'month_range': month_range,
+                'mood_list': mood_list
+            }
+
+        return Response(data=data, status=status.HTTP_200_OK)
