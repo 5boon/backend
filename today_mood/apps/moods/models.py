@@ -1,11 +1,12 @@
 from django.db import models
-from django.utils import timezone
+from django.db.models import Model
 
+from apps.core.mixins import TimeModelMixin
 from apps.mood_groups.models import MoodGroup
 from apps.users.models import User
 
 
-class Mood(models.Model):
+class Mood(TimeModelMixin, Model):
     WORST, BAD, MOPE, SOSO, GOOD, BEST = 0, 5, 10, 15, 20, 25
     STATUS_CHOICES = (
         (WORST, 'worst'),  # 최악이에요
@@ -24,9 +25,7 @@ class Mood(models.Model):
         verbose_name = 'mood'
 
 
-class UserMood(models.Model):
-    created = models.DateTimeField('created date', default=timezone.now, blank=True, editable=False, db_index=True)
-    modified = models.DateTimeField('modified date', default=timezone.now, blank=True, editable=False)
+class UserMood(TimeModelMixin, Model):
     mood_group = models.ForeignKey(MoodGroup, on_delete=models.CASCADE, default=None, null=True)
     mood = models.ForeignKey(Mood, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
