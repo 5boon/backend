@@ -26,6 +26,8 @@ def create_sample_month_mood(user_id: int, year: int = 2020, month: int = 1):
         rand_int = randint(0, 4)
         for _ in range(0, rand_int + 1):
             mood = Mood(
+                created=date.replace(day=day),
+                modified=date.replace(day=day),
                 status=choice(MOOD_LIST),
                 simple_summary=choice(TEST_STRING_LIST),
                 is_day_last=True if _ == rand_int else False
