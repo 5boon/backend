@@ -8,7 +8,7 @@ from apps.mood_groups.models import UserMoodGroup, MoodGroup
 from apps.moods.models import UserMood, Mood
 from tests.request_helper import pytest_request
 
-MOOD_FIELDS_LIST = ['id', 'status', 'simple_summary']
+MOOD_FIELDS_LIST = ['id', 'created', 'status', 'simple_summary']
 DAY_MOOD_FIELDS_LIST = ['next', 'previous', 'results']
 MONTH_MOOD_FIELDS_LIST = ['month_range', 'mood_list']
 WEEK_MOOD_FIELDS_LIST = ['mood_list']
