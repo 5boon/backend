@@ -7,6 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from api.mood_groups.serializers import MoodGroupSerializers, UserMoodGroupSerializers, MoodInvitationSerializers
 from api.moods.serializers import UserMoodSerializers
+from api.pagination import CustomCursorPagination
 from apps.mood_groups.models import MoodGroup, UserMoodGroup, MoodGroupInvitation
 from apps.moods.models import UserMood
 from apps.users.models import User
@@ -70,6 +71,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
     def retrieve(self, request, *args, **kwargs):
         # 그룹에 속한 사람들 리스트
         user_mood_group = self.get_object()
+        display_mine = request.GET.get('display_mine', None)  # 본인 기분 표시 여부
 
         try:
             if user_mood_group.user != request.user:
@@ -86,8 +88,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
 
         user_mood_list = []
         for user_id in user_id_list:
-            # 본인 기분은 제외
-            if user_id == request.user.id:
+            if display_mine is None and user_id == request.user.id:
                 continue
 
             try:
@@ -133,6 +134,7 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
     queryset = MoodGroupInvitation.objects.all()
     serializer_class = MoodInvitationSerializers
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    pagination_class = CustomCursorPagination
 
     def create(self, request, *args, **kwargs):
         data = request.data
@@ -164,10 +166,13 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
 
     def list(self, request, *args, **kwargs):
         # 자기 자신의 초대장 검색
-        queryset = self.get_queryset().filter(guest=self.request.user)
-        serializer = self.get_serializer(queryset, many=True)
+        self.pagination_class.cursor = self.request.query_params.get('cursor')
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        queryset = self.get_queryset().filter(guest=self.request.user)
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+
+        return self.get_paginated_response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         # 초대 수락

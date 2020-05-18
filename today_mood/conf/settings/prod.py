@@ -4,10 +4,10 @@ import os
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-RELEASE_VERSION = '2020.5.5'
+RELEASE_VERSION = '2020.5.15'
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DJANGO_ROOT = BASE_DIR
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '5boon_secret_key'
@@ -21,16 +21,55 @@ OAUTH2_CLIENT_KEY = '5boon_oauth2_client_key'
 
 AUTH_USER_MODEL = "users.user"
 
+# Jet admin 테마
+JET_SIDE_MENU_COMPACT = True
+JET_THEMES = [
+    {
+        'theme': '#F08B68', # theme folder name
+        'color': '#F08B68', # color of the theme's button in user menu
+        'title': '#F08B68' # theme title
+    },
+    {
+        'theme': 'green',
+        'color': '#44b78b',
+        'title': 'Green'
+    },
+    {
+        'theme': 'light-green',
+        'color': '#2faa60',
+        'title': 'Light Green'
+    },
+    {
+        'theme': 'light-violet',
+        'color': '#a464c4',
+        'title': 'Light Violet'
+    },
+    {
+        'theme': 'light-blue',
+        'color': '#5EADDE',
+        'title': 'Light Blue'
+    },
+    {
+        'theme': 'light-gray',
+        'color': '#222',
+        'title': 'Light Gray'
+    }
+]
+
 #########################################
 #     Application definition
 #########################################
 INSTALLED_APPS = [
+    'jet',
+    'jet.dashboard',  # dashboard 기능을 사용하려면 다음을 추가
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
 
     'rest_framework',
     'oauth2_provider',
@@ -104,7 +143,9 @@ ROOT_URLCONF = 'urls.domain'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, '../../../templates')],
+        'DIRS': [
+            os.path.normpath(os.path.join(DJANGO_ROOT, 'templates')),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -147,7 +188,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -206,3 +246,6 @@ LANGUAGE_CODE = 'ko-kr'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/home/deploy/sites/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
