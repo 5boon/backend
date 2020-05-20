@@ -63,18 +63,18 @@ def slack_notify_new_group(user_name: str, data: dict):
         slack.notify(attachments=attachments)
 
 
-def slack_notify_new_mood(status: str, user_name: str, simple_summary: str):
+def slack_notify_new_mood(status: list, user_name: str, simple_summary: str):
     channel = settings.SLACK_CHANNEL_CREATE_MOOD
 
     attachments = [
         {
-            "color": "#F0896A",
+            "color": status[1],
             "title": "기분 생성",
             "pretext": "앙! 기분띠!\n`{}`님이 기분을 생성했습니다!".format(user_name),
             "fields": [
                 {
                     "title": "상태",
-                    "value": status,
+                    "value": status[0],
                     "short": True
                 },
                 {

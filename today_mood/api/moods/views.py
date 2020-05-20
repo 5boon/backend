@@ -15,12 +15,12 @@ from utils.slack import slack_notify_new_mood
 
 MOOD_LIMITED_COUNT = 1000
 MOOD_DICT = {
-    Mood.WORST: 'worst',
-    Mood.BAD: 'bad',
-    Mood.MOPE: 'mope',
-    Mood.SOSO: 'soso',
-    Mood.GOOD: 'good',
-    Mood.BEST: 'best',
+    Mood.WORST: ['최악이에요', '#383B47'],
+    Mood.BAD: ['나빠요', '#494F67'],
+    Mood.MOPE: ['우울해요', '#5070C2'],
+    Mood.SOSO: ['그냥그래요', '#9795FF'],
+    Mood.GOOD: ['좋아요', '#F4B1BA'],
+    Mood.BEST: ['최고에요', '#EA6D7D'],
 }
 
 
