@@ -169,6 +169,7 @@ DATABASES = {
         'NAME': '5boondb',
         'OPTIONS': {
             'read_default_file': '/etc/mysql/conf.d/5boon.cnf',
+            'charset': 'utf8mb4',
         },
     }
 }
