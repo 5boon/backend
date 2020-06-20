@@ -88,6 +88,8 @@ class MyGroupViewSet(mixins.ListModelMixin,
 
         user_mood_list = []
         for user_id in user_id_list:
+            mood_data = None
+
             if display_mine is None and user_id == request.user.id:
                 continue
 
@@ -104,17 +106,23 @@ class MyGroupViewSet(mixins.ListModelMixin,
                 mood_group_id=search_group_id,
             ).last()
 
-            user_mood_data = UserMoodSerializers(instance=user_mood).data
-            mood_data = user_mood_data.get('mood')
-            do_show_summary = user_mood.do_show_summary
+            if user_mood:
+                user_mood_data = UserMoodSerializers(instance=user_mood).data
+
+                if user_mood_data.get('do_show_summary'):
+                    simple_summary = user_mood_data.get('mood').get('simple_summary')
+                else:
+                    simple_summary = None
+
+                mood_data = {
+                    'created': user_mood_data.get('created'),
+                    'status': user_mood_data.get('mood').get('status'),
+                    'simple_summary': simple_summary
+                }
 
             data = {
                 'user': user.name,
-                'mood': {
-                    'created': user_mood_data.get('created'),
-                    'status': mood_data.get('status'),
-                    'simple_summary': mood_data.get('simple_summary') if do_show_summary else None,
-                }
+                'mood': mood_data
             }
 
             user_mood_list.append(data)
