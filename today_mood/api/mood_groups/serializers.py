@@ -15,7 +15,15 @@ class UserMoodGroupSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = UserMoodGroup
-        fields = ['id', 'user', 'mood_group', 'is_reader']
+        fields = ['id', 'mood_group', 'is_reader']
+
+    def to_representation(self, instance):
+        data = super(UserMoodGroupSerializers, self).to_representation(instance)
+        data['people_cnt'] = UserMoodGroup.objects.filter(
+            mood_group_id=instance.mood_group_id
+        ).count()
+
+        return data
 
 
 class MoodInvitationSerializers(serializers.ModelSerializer):
