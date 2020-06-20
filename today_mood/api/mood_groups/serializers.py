@@ -19,9 +19,18 @@ class UserMoodGroupSerializers(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super(UserMoodGroupSerializers, self).to_representation(instance)
-        data['people_cnt'] = UserMoodGroup.objects.filter(
+
+        user_inform = list(UserMoodGroup.objects.filter(
             mood_group_id=instance.mood_group_id
-        ).count()
+        ).values_list('user', 'user__name'))
+
+        data['people'] = []
+        data['people_cnt'] = len(user_inform)
+        for _id, _name in user_inform:
+            data['people'].append({
+                'id': _id,
+                'name': _name
+            })
 
         return data
 
