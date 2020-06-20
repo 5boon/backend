@@ -1,3 +1,5 @@
+import hashlib
+
 from django.utils import timezone
 from rest_framework import permissions, mixins, status, exceptions
 from rest_framework.exceptions import PermissionDenied
@@ -34,6 +36,7 @@ class GroupViewSet(mixins.CreateModelMixin,
         data = request.data
         data['created'] = today
         data['modified'] = today
+        data['code'] = hashlib.sha256(data.get('title').encode()).hexdigest()
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -42,7 +45,7 @@ class GroupViewSet(mixins.CreateModelMixin,
         # 그룹을 생성한 경우 그룹의 리더가 됨
         UserMoodGroup.objects.create(
             user=request.user,
-            mood_group=group,
+            mood_group_id=group.id,
             is_reader=True
         )
 

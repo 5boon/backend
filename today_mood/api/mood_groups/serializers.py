@@ -7,7 +7,7 @@ class MoodGroupSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = MoodGroup
-        fields = ['id', 'created', 'modified', 'title', 'summary']
+        fields = ['id', 'created', 'modified', 'title', 'summary', 'code']
 
 
 class UserMoodGroupSerializers(serializers.ModelSerializer):
