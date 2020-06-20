@@ -3,13 +3,11 @@ import hashlib
 from django.utils import timezone
 from rest_framework import permissions, mixins, status, exceptions
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.mood_groups.serializers import MoodGroupSerializers, UserMoodGroupSerializers, MoodInvitationSerializers
+from api.mood_groups.serializers import MoodGroupSerializers, UserMoodGroupSerializers
 from api.moods.serializers import UserMoodSerializers
-from api.pagination import CustomCursorPagination
 from apps.mood_groups.models import MoodGroup, UserMoodGroup, MoodGroupInvitation
 from apps.moods.models import UserMood
 from apps.users.models import User
@@ -134,77 +132,39 @@ class MyGroupViewSet(mixins.ListModelMixin,
 
 
 class GroupInvitationViewSet(mixins.CreateModelMixin,
-                             mixins.ListModelMixin,
-                             mixins.UpdateModelMixin,
                              GenericViewSet):
     """
-        - 그룹(mood_groups) 초대
-        endpoint : /mood_groups/invitation/pk/
+        - 그룹(mood_groups) 코드로 그룹 가입
+        endpoint : /mood_groups/invitation/
     """
 
     queryset = MoodGroupInvitation.objects.all()
-    serializer_class = MoodInvitationSerializers
+    serializer_class = UserMoodGroupSerializers
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    pagination_class = CustomCursorPagination
 
     def create(self, request, *args, **kwargs):
-        data = request.data
-        data['invited_by'] = request.user.name
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
+        code = request.GET.get('code')
+        user_id = request.user.id
 
         has_user_mood = UserMoodGroup.objects.filter(
-            user_id=serializer.validated_data.get('guest'),
-            mood_group_id=serializer.validated_data.get('mood_group')
+            user_id=user_id,
+            mood_group__code=code
         ).exists()
 
         # 이미 속한 그룹인 경우
         if has_user_mood:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        is_exist = self.get_queryset().filter(
-            guest_id=serializer.validated_data.get('guest'),
-            mood_group_id=serializer.validated_data.get('mood_group')
-        ).exists()
+        try:
+            mood_group = MoodGroup.objects.filter(code=code).get()
+        except MoodGroup.DoesNotExist:
+            raise exceptions.NotFound
 
-        # 이미 초대한 경우
-        if is_exist:
-            return Response(status=status.HTTP_200_OK)
-
-        self.perform_create(serializer)
-
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-
-    def list(self, request, *args, **kwargs):
-        # 자기 자신의 초대장 검색
-        self.pagination_class.cursor = self.request.query_params.get('cursor')
-
-        queryset = self.get_queryset().filter(guest=self.request.user)
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-
-        return self.get_paginated_response(serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        # 초대 수락
-        queryset = self.get_queryset()
-        group_filter = {
-            'id': int(kwargs.get('pk'))
-        }
-        invitation = get_object_or_404(queryset, **group_filter)
-
-        if invitation.guest != request.user:
-            raise PermissionDenied
-
-        user_group = UserMoodGroup.objects.create(
-            user=invitation.guest,
-            mood_group=invitation.mood_group,
+        user_mood_group = UserMoodGroup.objects.create(
+            mood_group_id=mood_group.id,
+            user_id=user_id,
+            is_reader=False
         )
+        data = self.get_serializer(instance=user_mood_group).data
 
-        # 그룹 초대 수락하면 초대장 삭제
-        invitation.delete()
-
-        return Response(
-            data=UserMoodGroupSerializers(instance=user_group).data,
-            status=status.HTTP_200_OK
-        )
+        return Response(data=data, status=status.HTTP_201_CREATED)
