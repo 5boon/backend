@@ -1,17 +1,23 @@
+import hashlib
+
 from django.utils import timezone
 from rest_framework import permissions, mixins, status, exceptions
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.mood_groups.serializers import MoodGroupSerializers, UserMoodGroupSerializers, MoodInvitationSerializers
+from api.mood_groups.serializers import MoodGroupSerializers, UserMoodGroupSerializers
 from api.moods.serializers import UserMoodSerializers
-from api.pagination import CustomCursorPagination
 from apps.mood_groups.models import MoodGroup, UserMoodGroup, MoodGroupInvitation
 from apps.moods.models import UserMood
 from apps.users.models import User
 from utils.slack import slack_notify_new_group
+
+
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger('django')
 
 
 class GroupViewSet(mixins.CreateModelMixin,
@@ -34,6 +40,7 @@ class GroupViewSet(mixins.CreateModelMixin,
         data = request.data
         data['created'] = today
         data['modified'] = today
+        data['code'] = hashlib.sha256(data.get('title').encode()).hexdigest()
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -42,12 +49,14 @@ class GroupViewSet(mixins.CreateModelMixin,
         # 그룹을 생성한 경우 그룹의 리더가 됨
         UserMoodGroup.objects.create(
             user=request.user,
-            mood_group=group,
+            mood_group_id=group.id,
             is_reader=True
         )
 
         slack_notify_new_group(request.user.name, serializer.validated_data)
-
+        logger.info('action: {}/ menu: {}/ pk: {}/ user_id:{}'.format(
+            'create', 'groups', group.id, request.user.id
+        ))
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -64,7 +73,10 @@ class MyGroupViewSet(mixins.ListModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset().filter(user=request.user)
+        queryset = self.get_queryset().filter(
+            user=request.user
+        ).prefetch_related('mood_group', 'user')
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -88,6 +100,8 @@ class MyGroupViewSet(mixins.ListModelMixin,
 
         user_mood_list = []
         for user_id in user_id_list:
+            mood_data = None
+
             if display_mine is None and user_id == request.user.id:
                 continue
 
@@ -104,17 +118,23 @@ class MyGroupViewSet(mixins.ListModelMixin,
                 mood_group_id=search_group_id,
             ).last()
 
-            user_mood_data = UserMoodSerializers(instance=user_mood).data
-            mood_data = user_mood_data.get('mood')
-            do_show_summary = user_mood.do_show_summary
+            if user_mood:
+                user_mood_data = UserMoodSerializers(instance=user_mood).data
+
+                if user_mood_data.get('do_show_summary'):
+                    simple_summary = user_mood_data.get('mood').get('simple_summary')
+                else:
+                    simple_summary = None
+
+                mood_data = {
+                    'created': user_mood_data.get('created'),
+                    'status': user_mood_data.get('mood').get('status'),
+                    'simple_summary': simple_summary
+                }
 
             data = {
                 'user': user.name,
-                'mood': {
-                    'created': user_mood_data.get('created'),
-                    'status': mood_data.get('status'),
-                    'simple_summary': mood_data.get('simple_summary') if do_show_summary else None,
-                }
+                'mood': mood_data
             }
 
             user_mood_list.append(data)
@@ -123,77 +143,39 @@ class MyGroupViewSet(mixins.ListModelMixin,
 
 
 class GroupInvitationViewSet(mixins.CreateModelMixin,
-                             mixins.ListModelMixin,
-                             mixins.UpdateModelMixin,
                              GenericViewSet):
     """
-        - 그룹(mood_groups) 초대
-        endpoint : /mood_groups/invitation/pk/
+        - 그룹(mood_groups) 코드로 그룹 가입
+        endpoint : /mood_groups/invitation/
     """
 
-    queryset = MoodGroupInvitation.objects.all()
-    serializer_class = MoodInvitationSerializers
+    queryset = UserMoodGroup.objects.all()
+    serializer_class = UserMoodGroupSerializers
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    pagination_class = CustomCursorPagination
 
     def create(self, request, *args, **kwargs):
-        data = request.data
-        data['invited_by'] = request.user.name
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
+        code = request.GET.get('code')
+        user_id = request.user.id
 
-        has_user_mood = UserMoodGroup.objects.filter(
-            user_id=serializer.validated_data.get('guest'),
-            mood_group_id=serializer.validated_data.get('mood_group')
+        has_user_mood = self.get_queryset().filter(
+            user_id=user_id,
+            mood_group__code=code
         ).exists()
 
         # 이미 속한 그룹인 경우
         if has_user_mood:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        is_exist = self.get_queryset().filter(
-            guest_id=serializer.validated_data.get('guest'),
-            mood_group_id=serializer.validated_data.get('mood_group')
-        ).exists()
+        try:
+            mood_group = MoodGroup.objects.filter(code=code).get()
+        except MoodGroup.DoesNotExist:
+            raise exceptions.NotFound
 
-        # 이미 초대한 경우
-        if is_exist:
-            return Response(status=status.HTTP_200_OK)
-
-        self.perform_create(serializer)
-
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-
-    def list(self, request, *args, **kwargs):
-        # 자기 자신의 초대장 검색
-        self.pagination_class.cursor = self.request.query_params.get('cursor')
-
-        queryset = self.get_queryset().filter(guest=self.request.user)
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-
-        return self.get_paginated_response(serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        # 초대 수락
-        queryset = self.get_queryset()
-        group_filter = {
-            'id': int(kwargs.get('pk'))
-        }
-        invitation = get_object_or_404(queryset, **group_filter)
-
-        if invitation.guest != request.user:
-            raise PermissionDenied
-
-        user_group = UserMoodGroup.objects.create(
-            user=invitation.guest,
-            mood_group=invitation.mood_group,
+        user_mood_group = UserMoodGroup.objects.create(
+            mood_group_id=mood_group.id,
+            user_id=user_id,
+            is_reader=False
         )
+        data = self.get_serializer(instance=user_mood_group).data
 
-        # 그룹 초대 수락하면 초대장 삭제
-        invitation.delete()
-
-        return Response(
-            data=UserMoodGroupSerializers(instance=user_group).data,
-            status=status.HTTP_200_OK
-        )
+        return Response(data=data, status=status.HTTP_201_CREATED)

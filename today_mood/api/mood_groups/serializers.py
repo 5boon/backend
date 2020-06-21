@@ -7,7 +7,7 @@ class MoodGroupSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = MoodGroup
-        fields = ['id', 'created', 'modified', 'title', 'summary']
+        fields = ['id', 'created', 'modified', 'title', 'summary', 'code']
 
 
 class UserMoodGroupSerializers(serializers.ModelSerializer):
@@ -15,7 +15,24 @@ class UserMoodGroupSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = UserMoodGroup
-        fields = ['id', 'user', 'mood_group', 'is_reader']
+        fields = ['id', 'mood_group', 'is_reader']
+
+    def to_representation(self, instance):
+        data = super(UserMoodGroupSerializers, self).to_representation(instance)
+
+        user_inform = list(UserMoodGroup.objects.filter(
+            mood_group_id=instance.mood_group_id
+        ).values_list('user', 'user__name'))
+
+        data['people'] = []
+        data['people_cnt'] = len(user_inform)
+        for _id, _name in user_inform:
+            data['people'].append({
+                'id': _id,
+                'name': _name
+            })
+
+        return data
 
 
 class MoodInvitationSerializers(serializers.ModelSerializer):
