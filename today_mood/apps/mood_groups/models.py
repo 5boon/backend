@@ -5,8 +5,9 @@ from apps.users.models import User
 
 
 class MoodGroup(TimeModelMixin, models.Model):
-    title = models.CharField(max_length=30, blank=True)
+    title = models.CharField(max_length=30, unique=True)
     summary = models.CharField(max_length=100, blank=True)
+    code = models.CharField(max_length=64, unique=True)
 
     class Meta:
         verbose_name = 'group'

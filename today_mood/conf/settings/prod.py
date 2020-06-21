@@ -4,7 +4,7 @@ import os
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-RELEASE_VERSION = '2020.5.20'
+RELEASE_VERSION = '2020.6.21'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DJANGO_ROOT = BASE_DIR
@@ -55,6 +55,41 @@ JET_THEMES = [
         'title': 'Light Gray'
     }
 ]
+
+###############################################################################
+#     Logging
+#     https://docs.python.org/3/howto/logging.html#configuring-logging
+###############################################################################
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # 다른 logger 들 활성
+    'formatters': {
+        'verbose': {
+            'format': '[%(levelname)s] [%(asctime)s] %(message)s',
+            'datefmt': "%Y-%m-%d %H:%M:%S"
+        },
+        'json': {
+            'format': '%(levelname)s %(asctime)s %(message)s',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join('5boon_log_path', 'access.log'),
+            'formatter': 'verbose',
+            'maxBytes': 1024 * 1024 * 100,  # 100M
+            'backupCount': 10,  # 최대 10개 유지
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': os.getenv('INFO'),
+            'propagate': False,
+        },
+    },
+}
 
 #########################################
 #     Application definition
