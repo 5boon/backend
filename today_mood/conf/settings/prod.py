@@ -4,7 +4,7 @@ import os
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
-RELEASE_VERSION = '2020.5.20'
+RELEASE_VERSION = '2020.6.21'
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DJANGO_ROOT = BASE_DIR
