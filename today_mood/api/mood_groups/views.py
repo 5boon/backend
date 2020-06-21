@@ -65,7 +65,10 @@ class MyGroupViewSet(mixins.ListModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset().filter(user=request.user)
+        queryset = self.get_queryset().filter(
+            user=request.user
+        ).prefetch_related('mood_group', 'user')
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -138,7 +141,7 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
         endpoint : /mood_groups/invitation/
     """
 
-    queryset = MoodGroupInvitation.objects.all()
+    queryset = UserMoodGroup.objects.all()
     serializer_class = UserMoodGroupSerializers
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
@@ -146,7 +149,7 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
         code = request.GET.get('code')
         user_id = request.user.id
 
-        has_user_mood = UserMoodGroup.objects.filter(
+        has_user_mood = self.get_queryset().filter(
             user_id=user_id,
             mood_group__code=code
         ).exists()
