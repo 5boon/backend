@@ -56,6 +56,41 @@ JET_THEMES = [
     }
 ]
 
+###############################################################################
+#     Logging
+#     https://docs.python.org/3/howto/logging.html#configuring-logging
+###############################################################################
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # 다른 logger 들 활성
+    'formatters': {
+        'verbose': {
+            'format': '[%(levelname)s] [%(asctime)s] %(message)s',
+            'datefmt': "%Y-%m-%d %H:%M:%S"
+        },
+        'json': {
+            'format': '%(levelname)s %(asctime)s %(message)s',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join('5boon_log_path', 'access.log'),
+            'formatter': 'verbose',
+            'maxBytes': 1024 * 1024 * 100,  # 100M
+            'backupCount': 10,  # 최대 10개 유지
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': os.getenv('INFO'),
+            'propagate': False,
+        },
+    },
+}
+
 #########################################
 #     Application definition
 #########################################

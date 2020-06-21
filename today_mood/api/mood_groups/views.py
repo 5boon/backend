@@ -14,6 +14,12 @@ from apps.users.models import User
 from utils.slack import slack_notify_new_group
 
 
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger('django')
+
+
 class GroupViewSet(mixins.CreateModelMixin,
                    GenericViewSet):
     """
@@ -48,7 +54,9 @@ class GroupViewSet(mixins.CreateModelMixin,
         )
 
         slack_notify_new_group(request.user.name, serializer.validated_data)
-
+        logger.info('action: {}/ menu: {}/ pk: {}/ user_id:{}'.format(
+            'create', 'groups', group.id, request.user.id
+        ))
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
