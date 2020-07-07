@@ -164,12 +164,17 @@ def test_invitation_join(rf, client, user_context, mock_is_authenticated):
         is_reader=True
     )
 
+    data = {
+        'code': code,
+    }
+
     url = reverse(
         viewname="mood_groups:invitation-list",
-    ) + '?code={}'.format(code)
+    )
     response = pytest_request(rf,
                               method='post',
                               url=url,
-                              user=guest)
+                              user=guest,
+                              data=data)
 
     assert response.status_code == status.HTTP_201_CREATED
