@@ -6,7 +6,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from api.mood_groups.serializers import MoodGroupSerializers, UserMoodGroupSerializers
+from api.mood_groups.serializers import MoodGroupSerializers, UserMoodGroupSerializers, MoodGroupCodeSerializers
 from api.moods.serializers import UserMoodSerializers
 from apps.mood_groups.models import MoodGroup, UserMoodGroup, MoodGroupInvitation
 from apps.moods.models import UserMood
@@ -154,7 +154,11 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
-        code = request.GET.get('code')
+        code_serializer = MoodGroupCodeSerializers(data=request.data)
+        if not code_serializer.is_valid():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        code = code_serializer.validated_data.get('code')
         user_id = request.user.id
 
         has_user_mood = self.get_queryset().filter(

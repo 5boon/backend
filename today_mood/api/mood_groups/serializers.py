@@ -35,6 +35,13 @@ class UserMoodGroupSerializers(serializers.ModelSerializer):
         return data
 
 
+class MoodGroupCodeSerializers(serializers.BaseSerializer):
+    code = serializers.CharField(max_length=64)
+
+    def to_internal_value(self, data):
+        return data
+
+
 class MoodInvitationSerializers(serializers.ModelSerializer):
 
     class Meta:
