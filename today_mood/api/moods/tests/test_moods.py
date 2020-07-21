@@ -103,6 +103,35 @@ def test_today_mood_list(rf, client, user_context, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
+def test_user_mood_list(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
+
+    today = timezone.now()
+
+    mood = Mood.objects.create(
+        status=0,
+        simple_summary='test'
+    )
+
+    UserMood.objects.create(
+        created=today,
+        modified=today,
+        user=user,
+        mood=mood
+    )
+
+    url = reverse(viewname="moods:mood_list")
+    response = pytest_request(rf,
+                              method='get',
+                              url=url,
+                              user=user)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert list(response.data.keys()) == DAY_MOOD_FIELDS_LIST
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
 def test_month_mood_list(rf, client, user_context, mock_is_authenticated):
     user = user_context.init.create_user()
     today = timezone.now()

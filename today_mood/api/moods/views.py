@@ -145,6 +145,39 @@ class MoodViewSet(mixins.CreateModelMixin,
             return True
 
 
+class MoodListViewSet(mixins.CreateModelMixin,
+                      mixins.ListModelMixin,
+                      GenericViewSet):
+    """
+        - Mood (기분) 리스트 (유저 필터링)
+        endpoint : /moods/list/
+        참고 : 날짜 필터링이 아닌 user의 기분으로 필터링 (기획변경)
+    """
+
+    queryset = Mood.objects.all()
+    serializer_class = MoodSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    pagination_class = CustomCursorPagination
+
+    def list(self, request, *args, **kwargs):
+        self.pagination_class.ordering = 'id'
+        self.pagination_class.cursor = self.request.query_params.get('cursor')
+
+        user = self.request.user
+        mood_qs = self.get_queryset().filter(
+            usermood__user=user,
+            usermood__mood_group=None
+        )
+
+        if not mood_qs:
+            Response(status=status.HTTP_200_OK)
+
+        page = self.paginate_queryset(mood_qs)
+        serializer = self.get_serializer(page, many=True)
+
+        return self.get_paginated_response(serializer.data)
+
+
 class WeekMoodViewSet(mixins.CreateModelMixin,
                       mixins.ListModelMixin,
                       GenericViewSet):
