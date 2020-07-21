@@ -72,6 +72,76 @@ def test_my_group_list(rf, client, user_context, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
+def test_my_group_delete(rf, client, user_context, mock_is_authenticated):
+    user = user_context.init.create_user()
+
+    guest = User.objects.create(
+        username='test_guest',
+        name='test_guest',
+        password='test_pw'
+    )
+
+    # user 기분 생성
+    mood = Mood.objects.create(
+        status=0,
+        simple_summary='test'
+    )
+
+    UserMood.objects.create(
+        user=user,
+        mood=mood
+    )
+
+    # guest 기분 생성
+    guest_mood = Mood.objects.create(
+        status=2,
+        simple_summary='guest mood summary'
+    )
+
+    UserMood.objects.create(
+        user=guest,
+        mood=guest_mood
+    )
+
+    # 그룹 생성
+    mood_group = MoodGroup.objects.create(
+        title='5boon',
+        summary='5boon 팀원들과의 기분 공유'
+    )
+
+    UserMood.objects.create(
+        user=guest,
+        mood=guest_mood,
+        mood_group=mood_group
+    )
+
+    user_mood_group = UserMoodGroup.objects.create(
+        user=user,
+        mood_group=mood_group,
+        is_reader=True
+    )
+
+    guest_mood_group = UserMoodGroup.objects.create(
+        user=guest,
+        mood_group=mood_group,
+        is_reader=False
+    )
+
+    url = reverse(
+        viewname="mood_groups:my_group-detail",
+        kwargs={"pk": user_mood_group.id}
+    )
+    response = pytest_request(rf,
+                              method='delete',
+                              url=url,
+                              user=user)
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not UserMoodGroup.objects.filter(id=user_mood_group.id).exists()
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
 def test_my_group_list_detail(rf, client, user_context, mock_is_authenticated):
     user = user_context.init.create_user()
 
