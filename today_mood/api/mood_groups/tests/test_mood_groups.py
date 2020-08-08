@@ -58,8 +58,7 @@ def test_my_group_list(rf, client, user_context, mock_is_authenticated):
     UserMoodGroup.objects.create(
         user=user,
         mood_group=mood_group,
-        is_reader=True
-    )
+  )
 
     url = reverse(viewname="mood_groups:my_group-list")
     response = pytest_request(rf,
@@ -118,13 +117,11 @@ def test_my_group_delete(rf, client, user_context, mock_is_authenticated):
     user_mood_group = UserMoodGroup.objects.create(
         user=user,
         mood_group=mood_group,
-        is_reader=True
     )
 
     guest_mood_group = UserMoodGroup.objects.create(
         user=guest,
         mood_group=mood_group,
-        is_reader=False
     )
 
     url = reverse(
@@ -188,13 +185,11 @@ def test_my_group_list_detail(rf, client, user_context, mock_is_authenticated):
     user_mood_group = UserMoodGroup.objects.create(
         user=user,
         mood_group=mood_group,
-        is_reader=True
     )
 
     guest_mood_group = UserMoodGroup.objects.create(
         user=guest,
         mood_group=mood_group,
-        is_reader=False
     )
 
     url = reverse(
@@ -231,7 +226,6 @@ def test_invitation_join(rf, client, user_context, mock_is_authenticated):
     UserMoodGroup.objects.create(
         user=user,
         mood_group=mood_group,
-        is_reader=True
     )
 
     data = {

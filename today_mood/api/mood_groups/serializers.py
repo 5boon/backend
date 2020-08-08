@@ -15,7 +15,7 @@ class UserMoodGroupSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = UserMoodGroup
-        fields = ['id', 'mood_group', 'is_reader']
+        fields = ['id', 'mood_group']
 
     def to_representation(self, instance):
         data = super(UserMoodGroupSerializers, self).to_representation(instance)

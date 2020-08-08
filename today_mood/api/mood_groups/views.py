@@ -50,7 +50,6 @@ class GroupViewSet(mixins.CreateModelMixin,
         UserMoodGroup.objects.create(
             user=request.user,
             mood_group_id=group.id,
-            is_reader=True
         )
 
         slack_notify_new_group(request.user.name, serializer.validated_data)
@@ -188,7 +187,6 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
         user_mood_group = UserMoodGroup.objects.create(
             mood_group_id=mood_group.id,
             user_id=user_id,
-            is_reader=False
         )
         data = self.get_serializer(instance=user_mood_group).data
 
