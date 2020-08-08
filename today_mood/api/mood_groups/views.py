@@ -71,7 +71,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
     serializer_class = UserMoodGroupSerializers
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Response:
         queryset = self.get_queryset().filter(
             user=request.user
         ).prefetch_related('mood_group', 'user')
@@ -79,7 +79,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs) -> Response:
         user_mood_group = self.get_object()
 
         if user_mood_group.user_id != request.user.id:
@@ -88,7 +88,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
         user_mood_group.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs) -> Response:
         # 그룹에 속한 사람들 리스트
         user_mood_group = self.get_object()
         display_mine = request.GET.get('display_mine', None)  # 본인 기분 표시 여부
@@ -161,7 +161,7 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
     serializer_class = UserMoodGroupSerializers
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs) -> Response:
         code_serializer = MoodGroupCodeSerializers(data=request.data)
         if not code_serializer.is_valid():
             return Response(status=status.HTTP_400_BAD_REQUEST)

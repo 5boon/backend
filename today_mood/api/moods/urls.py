@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.conf.urls import url
 
 from api.moods.views import MoodViewSet, WeekMoodViewSet, YearMoodViewSet, MonthMoodViewSet, MoodListViewSet
