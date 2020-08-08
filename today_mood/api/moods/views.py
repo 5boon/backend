@@ -160,7 +160,7 @@ class MoodListViewSet(mixins.CreateModelMixin,
     pagination_class = CustomCursorPagination
 
     def list(self, request, *args, **kwargs):
-        self.pagination_class.ordering = 'id'
+        self.pagination_class.ordering = '-id'
         self.pagination_class.cursor = self.request.query_params.get('cursor')
 
         user = self.request.user
