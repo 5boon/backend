@@ -22,7 +22,7 @@ def send_pw_email(email_address, new_pw):
     email.send()
 
 
-def create_temp_pw():
+def create_temp_pw() -> str:
     """
         임시 비밀번호 생성
     """
