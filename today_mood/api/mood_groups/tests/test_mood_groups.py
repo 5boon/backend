@@ -5,7 +5,7 @@ import pytest
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from apps.mood_groups.models import UserMoodGroup
+from apps.mood_groups.models import UserMoodGroup, MoodGroup
 from apps.moods.models import UserMood, Mood
 from apps.users.models import User
 from tests.request_helper import pytest_request
@@ -23,13 +23,15 @@ def mock_is_authenticated():
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
 def test_group_create(rf, client, user_context, mock_is_authenticated):
+    """
+        그룹 생성
+    """
+    user = user_context.init.create_user()
 
     data = {
         'title': '5boon',
         'summary': '5boon 팀원들과의 기분 공유'
     }
-
-    user = user_context.init.create_user()
 
     url = reverse(viewname="mood_groups:group-list")
     response = pytest_request(rf,
@@ -44,6 +46,10 @@ def test_group_create(rf, client, user_context, mock_is_authenticated):
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
 def test_my_group_list(rf, client, user_context, mock_is_authenticated):
+    """
+        그룹 리스트 보기
+    """
+
     user = user_context.init.create_user()
     user_context.init.create_groups(
         user=user,
@@ -63,6 +69,10 @@ def test_my_group_list(rf, client, user_context, mock_is_authenticated):
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
 def test_my_group_delete(rf, client, user_context, mock_is_authenticated):
+    """
+        그룹 나가기
+    """
+
     user = user_context.init.create_user()
     # 그룹 생성
     mood_group, user_mood_group = user_context.init.create_groups(
@@ -106,12 +116,46 @@ def test_my_group_delete(rf, client, user_context, mock_is_authenticated):
                               user=user)
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert MoodGroup.objects.filter(id=user_mood_group.mood_group.id).exists()
     assert not UserMoodGroup.objects.filter(id=user_mood_group.id).exists()
 
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
+def test_my_group_delete_and_no_member_group(rf, client, user_context, mock_is_authenticated):
+    """
+        내 그룹 나가기 테스트, 그룹에 멤버가 없는경우 그룹 삭제 되는지 테스트
+    """
+
+    user = user_context.init.create_user()
+    mood_group, user_mood_group = user_context.init.create_groups(
+        user=user,
+        title='5boon',
+        summary='5boon 팀원들과의 기분 공유'
+    )
+
+    url = reverse(
+        viewname="mood_groups:my_group-detail",
+        kwargs={
+            'pk': user_mood_group.id
+        }
+    )
+    response = pytest_request(rf,
+                              method='delete',
+                              url=url,
+                              user=user)
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not MoodGroup.objects.filter(id=user_mood_group.mood_group.id).exists()
+
+
+@pytest.mark.urls(urls='urls')
+@pytest.mark.django_db
 def test_my_group_list_detail(rf, client, user_context, mock_is_authenticated):
+    """
+        그룹 자세히 보기
+    """
+
     user = user_context.init.create_user()
     # 그룹 생성
     mood_group, user_mood_group = user_context.init.create_groups(
@@ -160,6 +204,10 @@ def test_my_group_list_detail(rf, client, user_context, mock_is_authenticated):
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
 def test_invitation_join(rf, client, user_context, mock_is_authenticated):
+    """
+        그룹 초대 테스트
+    """
+
     user = user_context.init.create_user()
     title = '5boon'
     user_context.init.create_groups(
