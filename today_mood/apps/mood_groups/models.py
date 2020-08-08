@@ -36,3 +36,6 @@ class MoodGroupInvitation(TimeModelMixin, models.Model):
 
     def __str__(self):
         return 'group: {} - guest {}'.format(self.mood_group.title, self.guest.name)
+
+# TODO: 임시로 models 에서 import 하도록 함
+import apps.mood_groups.signals
