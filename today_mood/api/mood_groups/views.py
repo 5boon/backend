@@ -8,7 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from api.mood_groups.serializers import MoodGroupSerializers, UserMoodGroupSerializers, MoodGroupCodeSerializers
 from api.moods.serializers import UserMoodSerializers
-from apps.mood_groups.models import MoodGroup, UserMoodGroup, MoodGroupInvitation
+from apps.mood_groups.models import MoodGroup, UserMoodGroup
 from apps.moods.models import UserMood
 from apps.users.models import User
 from utils.slack import slack_notify_new_group
@@ -46,11 +46,9 @@ class GroupViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         group = self.perform_create(serializer)
 
-        # 그룹을 생성한 경우 그룹의 리더가 됨
         UserMoodGroup.objects.create(
             user=request.user,
             mood_group_id=group.id,
-            is_reader=True
         )
 
         slack_notify_new_group(request.user.name, serializer.validated_data)
@@ -62,6 +60,7 @@ class GroupViewSet(mixins.CreateModelMixin,
 
 class MyGroupViewSet(mixins.ListModelMixin,
                      mixins.RetrieveModelMixin,
+                     mixins.DestroyModelMixin,
                      GenericViewSet):
     """
         - 내 그룹(mood_groups) 조회
@@ -72,7 +71,7 @@ class MyGroupViewSet(mixins.ListModelMixin,
     serializer_class = UserMoodGroupSerializers
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Response:
         queryset = self.get_queryset().filter(
             user=request.user
         ).prefetch_related('mood_group', 'user')
@@ -80,7 +79,16 @@ class MyGroupViewSet(mixins.ListModelMixin,
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def retrieve(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs) -> Response:
+        user_mood_group = self.get_object()
+
+        if user_mood_group.user_id != request.user.id:
+            raise PermissionDenied
+
+        user_mood_group.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def retrieve(self, request, *args, **kwargs) -> Response:
         # 그룹에 속한 사람들 리스트
         user_mood_group = self.get_object()
         display_mine = request.GET.get('display_mine', None)  # 본인 기분 표시 여부
@@ -153,7 +161,7 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
     serializer_class = UserMoodGroupSerializers
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs) -> Response:
         code_serializer = MoodGroupCodeSerializers(data=request.data)
         if not code_serializer.is_valid():
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -178,7 +186,6 @@ class GroupInvitationViewSet(mixins.CreateModelMixin,
         user_mood_group = UserMoodGroup.objects.create(
             mood_group_id=mood_group.id,
             user_id=user_id,
-            is_reader=False
         )
         data = self.get_serializer(instance=user_mood_group).data
 

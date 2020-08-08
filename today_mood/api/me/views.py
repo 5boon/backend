@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, mixins, status
+from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -13,7 +13,8 @@ class MeViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewS
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def list(self, request):
+    def list(self, request) -> Response:
         instance = request.user
         serializer = UserSerializer(instance)
+
         return Response(serializer.data)

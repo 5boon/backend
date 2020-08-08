@@ -37,7 +37,7 @@ class MoodViewSet(mixins.CreateModelMixin,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = CustomCursorPagination
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer) -> dict:
         """
             - show_summary_group_list 가 empty list 이면 전체 공개
         """
@@ -95,11 +95,11 @@ class MoodViewSet(mixins.CreateModelMixin,
                 'err_code': 'limited',
                 'description': 'You have exceeded 100 moods.'
             }
-            return err_data, status.HTTP_400_BAD_REQUEST
+            return err_data
 
         return self.get_serializer(instance=mood).data
 
-    def create(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         my_mode = self.perform_create(serializer)
@@ -112,7 +112,7 @@ class MoodViewSet(mixins.CreateModelMixin,
 
         return Response(my_mode, status=status.HTTP_201_CREATED)
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Response:
         self.pagination_class.cursor = self.request.query_params.get('cursor')
 
         if request.GET.get('date'):
@@ -145,6 +145,39 @@ class MoodViewSet(mixins.CreateModelMixin,
             return True
 
 
+class MoodListViewSet(mixins.CreateModelMixin,
+                      mixins.ListModelMixin,
+                      GenericViewSet):
+    """
+        - Mood (기분) 리스트 (유저 필터링)
+        endpoint : /moods/list/
+        참고 : 날짜 필터링이 아닌 user의 기분으로 필터링 (기획변경)
+    """
+
+    queryset = Mood.objects.all()
+    serializer_class = MoodSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    pagination_class = CustomCursorPagination
+
+    def list(self, request, *args, **kwargs) -> Response:
+        self.pagination_class.ordering = '-id'
+        self.pagination_class.cursor = self.request.query_params.get('cursor')
+
+        user = self.request.user
+        mood_qs = self.get_queryset().filter(
+            usermood__user=user,
+            usermood__mood_group=None
+        )
+
+        if not mood_qs:
+            Response(status=status.HTTP_200_OK)
+
+        page = self.paginate_queryset(mood_qs)
+        serializer = self.get_serializer(page, many=True)
+
+        return self.get_paginated_response(serializer.data)
+
+
 class WeekMoodViewSet(mixins.CreateModelMixin,
                       mixins.ListModelMixin,
                       GenericViewSet):
@@ -156,7 +189,7 @@ class WeekMoodViewSet(mixins.CreateModelMixin,
     queryset = UserMood.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Response:
         user = self.request.user
         today = timezone.now() + timedelta(days=1)
         week_ago = today - timedelta(days=7)
@@ -176,7 +209,7 @@ class WeekMoodViewSet(mixins.CreateModelMixin,
         return Response(data=data, status=status.HTTP_200_OK)
 
     @staticmethod
-    def get_week_mood(user_mood_qs, day):
+    def get_week_mood(user_mood_qs, day) -> list:
         week_mood_list = []
         user_mood_list = list(user_mood_qs)
 
@@ -209,7 +242,7 @@ class MonthMoodViewSet(mixins.CreateModelMixin,
     queryset = UserMood.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Response:
         user = self.request.user
         year = int(kwargs.get('year'))
         month = int(kwargs.get('month'))
@@ -250,7 +283,7 @@ class YearMoodViewSet(MonthMoodViewSet):
     queryset = UserMood.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request, *args, **kwargs) -> Response:
         user = self.request.user
         year = int(kwargs.get('year'))
         data = {}

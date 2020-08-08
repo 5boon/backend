@@ -9,7 +9,7 @@ class CustomCursorPagination(CursorPagination):
     page_size_query_param = 'page_size'
     ordering = '-id'
 
-    def get_paginated_response(self, data):
+    def get_paginated_response(self, data) -> Response:
         return Response({
             'next': self.get_cursor(self.get_next_link()),
             'previous': self.get_cursor(self.get_previous_link()),
