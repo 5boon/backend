@@ -46,7 +46,6 @@ class GroupViewSet(mixins.CreateModelMixin,
         serializer.is_valid(raise_exception=True)
         group = self.perform_create(serializer)
 
-        # 그룹을 생성한 경우 그룹의 리더가 됨
         UserMoodGroup.objects.create(
             user=request.user,
             mood_group_id=group.id,

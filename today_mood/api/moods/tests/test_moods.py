@@ -25,20 +25,15 @@ def mock_is_authenticated():
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'mood_status',
-    [0, 5, 10, 15, 20, 25]
+    [Mood.BAD, Mood.GOOD, Mood.BEST, Mood.MOPE, Mood.SOSO, Mood.WORST]
 )
 def test_today_mood_create(rf, client, user_context, mood_status, mock_is_authenticated):
     user = user_context.init.create_user()
-
-    mood_group = MoodGroup.objects.create(
+    # 그룹 생성
+    mood_group, user_mood_group = user_context.init.create_groups(
+        user=user,
         title='5boon',
         summary='5boon 팀원들과의 기분 공유'
-    )
-
-    group = UserMoodGroup.objects.create(
-        user=user,
-        mood_group=mood_group,
-        is_reader=True
     )
 
     data = {
@@ -74,13 +69,17 @@ def test_no_today_mood_list(rf, client, user_context, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_today_mood_list(rf, client, user_context, mock_is_authenticated):
+@pytest.mark.parametrize(
+    'mood_status',
+    [Mood.BAD, Mood.GOOD, Mood.BEST, Mood.MOPE, Mood.SOSO, Mood.WORST]
+)
+def test_today_mood_list(rf, client, user_context, mock_is_authenticated, mood_status):
     user = user_context.init.create_user()
 
     today = timezone.now()
 
     mood = Mood.objects.create(
-        status=0,
+        status=mood_status,
         simple_summary='test'
     )
 
@@ -103,13 +102,17 @@ def test_today_mood_list(rf, client, user_context, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_user_mood_list(rf, client, user_context, mock_is_authenticated):
+@pytest.mark.parametrize(
+    'mood_status',
+    [Mood.BAD, Mood.GOOD, Mood.BEST, Mood.MOPE, Mood.SOSO, Mood.WORST]
+)
+def test_user_mood_list(rf, client, user_context, mock_is_authenticated, mood_status):
     user = user_context.init.create_user()
 
     today = timezone.now()
 
     mood = Mood.objects.create(
-        status=0,
+        status=mood_status,
         simple_summary='test'
     )
 
@@ -132,12 +135,16 @@ def test_user_mood_list(rf, client, user_context, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_month_mood_list(rf, client, user_context, mock_is_authenticated):
+@pytest.mark.parametrize(
+    'mood_status',
+    [Mood.BAD, Mood.GOOD, Mood.BEST, Mood.MOPE, Mood.SOSO, Mood.WORST]
+)
+def test_month_mood_list(rf, client, user_context, mock_is_authenticated, mood_status):
     user = user_context.init.create_user()
     today = timezone.now()
 
     mood = Mood.objects.create(
-        status=0,
+        status=mood_status,
         simple_summary='test'
     )
 
@@ -166,12 +173,16 @@ def test_month_mood_list(rf, client, user_context, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_week_mood_list(rf, client, user_context, mock_is_authenticated):
+@pytest.mark.parametrize(
+    'mood_status',
+    [Mood.BAD, Mood.GOOD, Mood.BEST, Mood.MOPE, Mood.SOSO, Mood.WORST]
+)
+def test_week_mood_list(rf, client, user_context, mock_is_authenticated, mood_status):
     user = user_context.init.create_user()
     today = timezone.now()
 
     mood = Mood.objects.create(
-        status=0,
+        status=mood_status,
         simple_summary='test'
     )
 
@@ -194,12 +205,16 @@ def test_week_mood_list(rf, client, user_context, mock_is_authenticated):
 
 @pytest.mark.urls(urls='urls')
 @pytest.mark.django_db
-def test_year_mood_list(rf, client, user_context, mock_is_authenticated):
+@pytest.mark.parametrize(
+    'mood_status',
+    [Mood.BAD, Mood.GOOD, Mood.BEST, Mood.MOPE, Mood.SOSO, Mood.WORST]
+)
+def test_year_mood_list(rf, client, user_context, mock_is_authenticated, mood_status):
     user = user_context.init.create_user()
     today = timezone.now()
 
     mood = Mood.objects.create(
-        status=0,
+        status=mood_status,
         simple_summary='test'
     )
 

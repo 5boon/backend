@@ -2,11 +2,10 @@ import hashlib
 
 import mock
 import pytest
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from apps.mood_groups.models import MoodGroup, UserMoodGroup
+from apps.mood_groups.models import UserMoodGroup
 from apps.moods.models import UserMood, Mood
 from apps.users.models import User
 from tests.request_helper import pytest_request
@@ -46,19 +45,11 @@ def test_group_create(rf, client, user_context, mock_is_authenticated):
 @pytest.mark.django_db
 def test_my_group_list(rf, client, user_context, mock_is_authenticated):
     user = user_context.init.create_user()
-
-    today = timezone.now()
-    mood_group = MoodGroup.objects.create(
-        created=today,
-        modified=today,
+    user_context.init.create_groups(
+        user=user,
         title='5boon',
         summary='5boon 팀원들과의 기분 공유'
     )
-
-    UserMoodGroup.objects.create(
-        user=user,
-        mood_group=mood_group,
-  )
 
     url = reverse(viewname="mood_groups:my_group-list")
     response = pytest_request(rf,
@@ -73,6 +64,12 @@ def test_my_group_list(rf, client, user_context, mock_is_authenticated):
 @pytest.mark.django_db
 def test_my_group_delete(rf, client, user_context, mock_is_authenticated):
     user = user_context.init.create_user()
+    # 그룹 생성
+    mood_group, user_mood_group = user_context.init.create_groups(
+        user=user,
+        title='5boon',
+        summary='5boon 팀원들과의 기분 공유'
+    )
 
     guest = User.objects.create(
         username='test_guest',
@@ -81,45 +78,20 @@ def test_my_group_delete(rf, client, user_context, mock_is_authenticated):
     )
 
     # user 기분 생성
-    mood = Mood.objects.create(
-        status=0,
-        simple_summary='test'
-    )
-
-    UserMood.objects.create(
-        user=user,
-        mood=mood
-    )
+    mood = Mood.objects.create(status=Mood.GOOD, simple_summary='test')
+    UserMood.objects.create(user=user, mood=mood)
 
     # guest 기분 생성
-    guest_mood = Mood.objects.create(
-        status=2,
-        simple_summary='guest mood summary'
-    )
-
-    UserMood.objects.create(
-        user=guest,
-        mood=guest_mood
-    )
-
-    # 그룹 생성
-    mood_group = MoodGroup.objects.create(
-        title='5boon',
-        summary='5boon 팀원들과의 기분 공유'
-    )
-
+    guest_mood = Mood.objects.create(status=Mood.BAD, simple_summary='guest mood summary')
+    UserMood.objects.create(user=guest, mood=guest_mood)
     UserMood.objects.create(
         user=guest,
         mood=guest_mood,
         mood_group=mood_group
     )
 
-    user_mood_group = UserMoodGroup.objects.create(
-        user=user,
-        mood_group=mood_group,
-    )
-
-    guest_mood_group = UserMoodGroup.objects.create(
+    # 그룹에 게스트 추가
+    UserMoodGroup.objects.create(
         user=guest,
         mood_group=mood_group,
     )
@@ -141,6 +113,12 @@ def test_my_group_delete(rf, client, user_context, mock_is_authenticated):
 @pytest.mark.django_db
 def test_my_group_list_detail(rf, client, user_context, mock_is_authenticated):
     user = user_context.init.create_user()
+    # 그룹 생성
+    mood_group, user_mood_group = user_context.init.create_groups(
+        user=user,
+        title='5boon',
+        summary='5boon 팀원들과의 기분 공유'
+    )
 
     guest = User.objects.create(
         username='test_guest',
@@ -149,45 +127,20 @@ def test_my_group_list_detail(rf, client, user_context, mock_is_authenticated):
     )
 
     # user 기분 생성
-    mood = Mood.objects.create(
-        status=0,
-        simple_summary='test'
-    )
-
-    UserMood.objects.create(
-        user=user,
-        mood=mood
-    )
+    mood = Mood.objects.create(status=Mood.GOOD, simple_summary='test')
+    UserMood.objects.create(user=user, mood=mood)
 
     # guest 기분 생성
-    guest_mood = Mood.objects.create(
-        status=2,
-        simple_summary='guest mood summary'
-    )
-
-    UserMood.objects.create(
-        user=guest,
-        mood=guest_mood
-    )
-
-    # 그룹 생성
-    mood_group = MoodGroup.objects.create(
-        title='5boon',
-        summary='5boon 팀원들과의 기분 공유'
-    )
-
+    guest_mood = Mood.objects.create(status=Mood.BAD, simple_summary='guest mood summary')
+    UserMood.objects.create(user=guest, mood=guest_mood)
     UserMood.objects.create(
         user=guest,
         mood=guest_mood,
         mood_group=mood_group
     )
 
-    user_mood_group = UserMoodGroup.objects.create(
-        user=user,
-        mood_group=mood_group,
-    )
-
-    guest_mood_group = UserMoodGroup.objects.create(
+    # 그룹에 게스트 추가
+    UserMoodGroup.objects.create(
         user=guest,
         mood_group=mood_group,
     )
@@ -208,28 +161,22 @@ def test_my_group_list_detail(rf, client, user_context, mock_is_authenticated):
 @pytest.mark.django_db
 def test_invitation_join(rf, client, user_context, mock_is_authenticated):
     user = user_context.init.create_user()
+    title = '5boon'
+    user_context.init.create_groups(
+        user=user,
+        title=title,
+        summary='5boon 팀원들과의 기분 공유'
+    )
 
+    # 게스트 추가
     guest = User.objects.create(
         username='test_guest',
         name='test_guest',
         password='test_pw'
     )
 
-    title = '5boon'
-    code = hashlib.sha256(title.encode()).hexdigest()
-    mood_group = MoodGroup.objects.create(
-        title=title,
-        summary='5boon 팀원들과의 기분 공유',
-        code=code
-    )
-
-    UserMoodGroup.objects.create(
-        user=user,
-        mood_group=mood_group,
-    )
-
     data = {
-        'code': code,
+        'code': hashlib.sha256(title.encode()).hexdigest(),
     }
 
     url = reverse(
