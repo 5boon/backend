@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from rest_framework import routers
 
 from api.mood_groups.views import GroupViewSet, MyGroupViewSet, GroupInvitationViewSet

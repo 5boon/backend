@@ -3,7 +3,7 @@ omit =
     */tests/*
     */migrations/*
     */settings/*
+    */apps.py
     fabfile.py
     manage.py
     wsgi.py
-    apps.py
