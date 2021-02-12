@@ -3,10 +3,10 @@ from datetime import datetime, timedelta
 
 from django.utils import timezone
 from rest_framework import permissions, mixins, status
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from api.moods.permissions import IsUserMoodGroup
 from api.moods.serializers import MoodSerializer
 from api.pagination import CustomCursorPagination
 from apps.mood_groups.models import UserMoodGroup
@@ -34,7 +34,7 @@ class MoodViewSet(mixins.CreateModelMixin,
 
     queryset = Mood.objects.all()
     serializer_class = MoodSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsUserMoodGroup)
     pagination_class = CustomCursorPagination
 
     def perform_create(self, serializer) -> dict:
@@ -60,9 +60,6 @@ class MoodViewSet(mixins.CreateModelMixin,
                 user=user
             ).values_list('mood_group_id', flat=True))
 
-            if not self.is_my_group(show_summary_group_list, mood_group_ids):
-                raise PermissionDenied
-
             mood = serializer.save()
 
             # 그룹과 별개로, 개인 기분(mood) 생성 - 그룹이 없을수도 있어서, mood_group=None 을 기본으로 생성
@@ -72,6 +69,7 @@ class MoodViewSet(mixins.CreateModelMixin,
                 mood_group=None
             )
 
+            # 내가속한 그룹에 기분을 저장
             for mood_group_id in mood_group_ids:
                 do_show_summary = False
 
