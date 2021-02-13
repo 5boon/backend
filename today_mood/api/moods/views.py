@@ -6,14 +6,14 @@ from rest_framework import permissions, mixins, status
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from api.moods.exceptions import LimitTodayMood, ServiceUnavailable
 from api.moods.permissions import IsUserMoodGroup
 from api.moods.serializers import MoodSerializer
+from api.moods.services import MoodDto, MoodManageService
 from api.pagination import CustomCursorPagination
-from apps.mood_groups.models import UserMoodGroup
 from apps.moods.models import Mood, UserMood
 from utils.slack import slack_notify_new_mood
 
-MOOD_LIMITED_COUNT = 1000
 MOOD_DICT = {
     Mood.WORST: ['최악이에요', '#383B47'],
     Mood.BAD: ['나빠요', '#494F67'],
@@ -42,60 +42,15 @@ class MoodViewSet(mixins.CreateModelMixin,
             - show_summary_group_list 가 empty list 이면 전체 공개
         """
 
-        today = timezone.now()
-        user = self.request.user
-        mood_group_create_list = []
-        show_summary_group_list = self.request.data.get('group_list', [])  # 기분 설명(summary) 보여줄 그룹
+        mood_manage_service = MoodManageService(self.request)
+        mood = self._build_mood_from_validated_data(self.request.data)
 
-        user_mood_count = UserMood.objects.filter(
-            user=user,
-            created__date=today.date(),
-            mood_group=None
-        ).count()
+        try:
+            response_data = mood_manage_service.update_my_mood(mood)
+        except LimitTodayMood:
+            raise ServiceUnavailable
 
-        # 오늘 기분 생성
-        if user_mood_count < MOOD_LIMITED_COUNT:
-            # 현재 속한 그룹 리스트 가져옴
-            mood_group_ids = list(UserMoodGroup.objects.filter(
-                user=user
-            ).values_list('mood_group_id', flat=True))
-
-            mood = serializer.save()
-
-            # 그룹과 별개로, 개인 기분(mood) 생성 - 그룹이 없을수도 있어서, mood_group=None 을 기본으로 생성
-            UserMood.objects.create(
-                mood=mood,
-                user=self.request.user,
-                mood_group=None
-            )
-
-            # 내가속한 그룹에 기분을 저장
-            for mood_group_id in mood_group_ids:
-                do_show_summary = False
-
-                if mood_group_id in show_summary_group_list:
-                    do_show_summary = True
-
-                mood_group_create_list.append(
-                    UserMood(
-                        do_show_summary=do_show_summary,
-                        mood_group_id=mood_group_id,
-                        user=user,
-                        mood=mood
-                    )
-                )
-
-            if mood_group_create_list:
-                UserMood.objects.bulk_create(mood_group_create_list)
-
-        else:
-            err_data = {
-                'err_code': 'limited',
-                'description': 'You have exceeded 100 moods.'
-            }
-            return err_data
-
-        return self.get_serializer(instance=mood).data
+        return response_data
 
     def create(self, request, *args, **kwargs) -> Response:
         serializer = self.get_serializer(data=request.data)
@@ -134,13 +89,15 @@ class MoodViewSet(mixins.CreateModelMixin,
         return self.get_paginated_response(serializer.data)
 
     @staticmethod
-    def is_my_group(groups: list, my_groups: list) -> bool:
-        other_group = set(groups) - set(my_groups)
+    def _build_mood_from_validated_data(data):
+        serializer = MoodSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        if other_group:
-            return False
-        else:
-            return True
+        return MoodDto(
+            status=data["status"],
+            simple_summary=data["simple_summary"],
+        )
 
 
 class MoodListViewSet(mixins.CreateModelMixin,
