@@ -42,7 +42,7 @@ pytest-xdist==1.29.0
 mock==4.0.2
 pytz==2019.3
 requests==2.23.0
-rsa==4.1
+rsa==4.7
 six==1.14.0
 slackweb==1.0.5
 sqlparse==0.3.1
